@@ -16,9 +16,13 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
-
+.env
+.env.local
+.env.development
+.env.production
 # Metro
 .metro-health-check*
+google-services.json
 
 # debug
 npm-debug.*
@@ -34,3 +38,5 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+.env.local
