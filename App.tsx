@@ -43,7 +43,8 @@ SplashScreen.setOptions({
 });
 
 Sentry.init({
-  dsn: process.env.EXPO_SENTRY_DNS as string,
+  // dsn: process.env.EXPO_SENTRY_DNS as string,
+  dsn: 'https://4a53a4a40f5dc5fc4d14928a9bdffed6@o4508772966727680.ingest.us.sentry.io/4508782695219200',
   // tracesSampleRate: 1.0,
   profilesSampleRate: 1.0,
   debug: true,
@@ -68,6 +69,9 @@ function App() {
     OpenSans_800ExtraBold_Italic,
   });
   const { user } = useSelector((store: RootState) => store.AUTH);
+  console.log(`====user====`);
+  console.log(user);
+  console.log(`====user====`);
 
   useEffect(() => {
     async function prepare() {

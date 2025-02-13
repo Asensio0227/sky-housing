@@ -1,7 +1,7 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MD2Colors, MD3Colors } from 'react-native-paper';
 import CustomDrawer from '../components/CustomDrawer';
-import Profile from '../screens/User/Profile';
+import AccountNavigation from './AccountNavigation';
 import ConversationNavigator from './ConversactionNavigation';
 import TabNavigation from './TabNavigation';
 
@@ -35,8 +35,8 @@ const DrawerNavigation = () => {
       />
       <Drawer.Screen
         options={{ drawerLabel: 'Profile' }}
-        name='profile'
-        component={Profile}
+        name='account'
+        component={AccountNavigation}
       />
     </Drawer.Navigator>
   );

@@ -1,4 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
@@ -11,7 +10,7 @@ import Input, { UserDocument } from '../../components/form/FormInput';
 import SubmitButton from '../../components/form/SubmitButton';
 import Loading from '../../components/Loading';
 import TextLink from '../../components/TextLink';
-import { signInUser } from '../../features/authSlice/authSliceSlice';
+import { signInUser } from '../../features/auth/authSlice';
 import useLocation from '../../hooks/useLocation';
 import useNotifications from '../../hooks/useNotifications';
 
@@ -27,7 +26,6 @@ const validateSchema = Yup.object().shape({
 const SiginIn = () => {
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
   const dispatch: any = useDispatch();
-  const navigation: any = useNavigation();
   const { location } = useLocation();
   const { expoPushToken } = useNotifications();
 
@@ -40,7 +38,7 @@ const SiginIn = () => {
       if (longitude !== undefined && latitude !== undefined) {
         userAds_address.coordinates = [longitude, latitude];
       } else {
-        throw new Error(
+        console.log(
           'Coordinates are not available! Please allow app to yse your location.'
         );
       }

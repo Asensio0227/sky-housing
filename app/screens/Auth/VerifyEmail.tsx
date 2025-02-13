@@ -12,10 +12,7 @@ import FormInput from '../../components/form/FormInput';
 import ResetInput from '../../components/form/ResetInput';
 import SubmitButton from '../../components/form/SubmitButton';
 import Loading from '../../components/Loading';
-import {
-  resendAccountCode,
-  verifyEmail,
-} from '../../features/authSlice/authSliceSlice';
+import { resendAccountCode, verifyEmail } from '../../features/auth/authSlice';
 
 const VerifyEmail = () => {
   const [resend, setResend] = useState(false);

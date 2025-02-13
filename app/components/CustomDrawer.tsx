@@ -9,6 +9,7 @@ import { MD2Colors } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import { removeUser, signOutUser } from '../features/auth/authSlice';
 import Loading from './Loading';
 
 const CustomDrawer: React.FC = (props: any) => {
@@ -17,8 +18,12 @@ const CustomDrawer: React.FC = (props: any) => {
   const dispatch: any = useDispatch();
 
   async function logoutUser() {
-    await dispatch(signOutUser());
-    navigation.navigate('login');
+    try {
+      await dispatch(signOutUser());
+      removeUser();
+    } catch (error: any) {
+      console.log(`Error logging out: ${error.message}...`);
+    }
   }
 
   if (isLoading) return <Loading />;
@@ -86,7 +91,7 @@ const CustomDrawer: React.FC = (props: any) => {
         </View>
         <DrawerItemList {...props} />
 
-        <Pressable onPress={logoutUser}>
+        <Pressable onPress={() => logoutUser()}>
           <Text
             style={{
               padding: 5,

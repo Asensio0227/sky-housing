@@ -13,7 +13,7 @@ import TextLink from '../../components/TextLink';
 import {
   requestResetPassword,
   ResetUserPassword,
-} from '../../features/authSlice/authSliceSlice';
+} from '../../features/auth/authSlice';
 
 const ResetPwd = () => {
   const [successfulCreation, setSuccessfulCreation] = useState(false);

@@ -122,6 +122,44 @@ export const signOutUser = createAsyncThunk(
     }
   }
 );
+// show current user
+export const currentUser = createAsyncThunk(
+  'auth/show',
+  async (_, thunkApi) => {
+    try {
+      const response = await customFetch.get('user/showMe');
+      return response.data;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(
+        `Error retrieving current user: ${error.response.data}`
+      );
+    }
+  }
+);
+// update user
+export const updateUser = createAsyncThunk(
+  'auth/update',
+  async (data: UserDocument, thunkApi) => {
+    try {
+      console.log(`===data====`);
+      console.log(data);
+      console.log(`===data====`);
+      // const userData = customData(data);
+      console.log(`===userData====`);
+      // console.log(userData);
+      console.log(`===userData====`);
+      const response = await customFetch.put('user/update-user', data);
+      console.log(`=====response=====`);
+      console.log(response);
+      console.log(`=====response=====`);
+      return response.data;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(
+        `Error updating user: ${error.response.data}`
+      );
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: 'counter',
@@ -129,6 +167,9 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
+    },
+    removeUser: (state) => {
+      state.user = null;
     },
   },
   extraReducers: (builder) => {
@@ -228,21 +269,55 @@ const authSlice = createSlice({
       })
       .addCase(signOutUser.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        console.log(`===fulfilled===`);
-        console.log(action);
-        console.log(`===fulfilled===`);
-        ToastAndroid.showWithGravity(action.payload.msg, 15000, 0);
+        state.user = null;
+        ToastAndroid.showWithGravity(
+          action.payload || 'Success! logging out....',
+          15000,
+          0
+        );
       })
       .addCase(signOutUser.rejected, (state, action: any) => {
         state.isLoading = false;
-        console.log(`=====rejected====`);
-        console.log(action);
-        console.log(`=====rejected====`);
         ToastAndroid.showWithGravity(action.payload.msg, 15000, 0);
+      });
+    // ********* current user *********
+    builder
+      .addCase(currentUser.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(currentUser.fulfilled, (state, action: any) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+      })
+      .addCase(currentUser.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        ToastAndroid.showWithGravity(action.payload, 15000, 0);
+      });
+    // ********* update user *********
+    builder
+      .addCase(updateUser.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateUser.fulfilled, (state, action: any) => {
+        state.isLoading = false;
+        // state.user = action.payload.user;
+        console.log(`===fulfilled====`);
+        console.log(action);
+        console.log(`===fulfilled====`);
+        ToastAndroid.showWithGravity('Success! user updated.', 15000, 0);
+      })
+      .addCase(updateUser.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        console.log(`===rejected====`);
+        console.log(action);
+        console.log(`===rejected====`);
+        ToastAndroid.showWithGravity('Success! user updated.', 15000, 0);
       });
     // ********* change password *********
   },
 });
 
-export const { setUser } = authSlice.actions;
+export const { setUser, removeUser } = authSlice.actions;
 export default authSlice.reducer;

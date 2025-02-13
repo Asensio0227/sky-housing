@@ -1,21 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { RootState } from '../../../store';
-import Text from '../../components/AppText';
-import Form from '../../components/form/AppForm';
-import DatePicker from '../../components/form/DatePicker';
-import {
-  default as FormImage,
-  default as ImageInput,
-} from '../../components/form/FormImage';
-import Input, { UserDocument } from '../../components/form/FormInput';
-import Submit from '../../components/form/SubmitButton';
+import { UserDocument } from '../../components/form/FormInput';
 import Loading from '../../components/Loading';
-import TextLink from '../../components/TextLink';
-import { createUserAccount } from '../../features/authSlice/authSliceSlice';
+import Setup from '../../components/Setup';
+import { createUserAccount } from '../../features/auth/authSlice';
 import useLocation from '../../hooks/useLocation';
 import useNotifications from '../../hooks/useNotifications';
 
@@ -80,134 +71,29 @@ const SignUp = () => {
   if (isLoading) return <Loading />;
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        justifyContent: 'center',
-        alignItems: 'center',
+    <Setup
+      initialValues={{
+        avatar: '',
+        first_name: '',
+        last_name: '',
+        username: '',
+        email: '',
+        password: '',
+        gender: '',
+        date_of_birth: '',
+        phone_number: '',
+        street: '',
+        city: '',
+        province: '',
+        postal_code: '',
+        country: '',
+        ideaNumber: '',
       }}
-      style={{
-        flex: 1,
-        overflow: 'scroll',
-        marginVertical: 20,
-      }}
-    >
-      <Text style={styles.text} title='Sign Up' />
-      <Form
-        initialValues={{
-          avatar: '',
-          first_name: '',
-          last_name: '',
-          username: '',
-          email: '',
-          password: '',
-          gender: '',
-          date_of_birth: '',
-          phone_number: '',
-          street: '',
-          city: '',
-          province: '',
-          postal_code: '',
-          country: '',
-          ideaNumber: '',
-        }}
-        validationSchema={validateSchema}
-        onSubmit={onSubmit}
-      >
-        <FormImage name='avatar' photoUrl={true} />
-        <Input
-          name='first_name'
-          label='First name'
-          placeholder='Enter your name'
-          icon='account'
-        />
-        <Input
-          name='last_name'
-          label='Last name'
-          placeholder='Enter your name'
-          icon='account'
-        />
-        <Input
-          name='username'
-          label='Username'
-          placeholder='Enter your username'
-          icon='account'
-        />
-        <Input
-          name='email'
-          label='Email'
-          placeholder='Enter your email'
-          icon='email'
-        />
-        <Input
-          name='ideaNumber'
-          label='Idea number'
-          placeholder='Enter your idea number'
-          icon='numeric'
-        />
-        <Input
-          name='phone_number'
-          label='Phone number'
-          placeholder='Enter your phone number'
-          icon='phone'
-        />
-        <DatePicker
-          name='date_of_birth'
-          label='Date of birth'
-          placeholder='Enter your date of birth'
-          icon='calendar'
-        />
-        <Input
-          name='gender'
-          label='Gender'
-          placeholder='Enter your gender'
-          icon='gender-male-female'
-        />
-        <Input
-          name='street'
-          label='Street'
-          placeholder='Enter your street'
-          icon='map-marker'
-        />
-        <Input
-          name='city'
-          label='City'
-          placeholder='Enter your city'
-          icon='city'
-        />
-        <Input
-          name='province'
-          label='Province'
-          placeholder='Enter your province'
-          icon='map-marker'
-        />
-        <Input
-          name='postal_code'
-          label='Postal code'
-          placeholder='Enter your postal code'
-          icon='map-marker'
-        />
-        <Input
-          name='country'
-          label='Country'
-          placeholder='Enter your country'
-          icon='map-marker'
-        />
-        <Input
-          name='password'
-          label='Password'
-          placeholder='Enter your password'
-          icon='lock'
-          secureTextEntry
-        />
-        <Submit title='Sign Up' />
-      </Form>
-      <TextLink text='I have account?' linkText='sign-in?' link='sign-in' />
-    </ScrollView>
+      validationSchema={validateSchema}
+      onSubmit={onSubmit}
+      title='Update Account'
+    />
   );
 };
 
 export default SignUp;
-
-const styles = StyleSheet.create({
-  text: { fontSize: 18, textDecorationLine: 'underline' },
-});

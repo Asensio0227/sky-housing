@@ -2,14 +2,10 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../../store';
 import AppButton from '../../components/AppButton';
 import AppText from '../../components/AppText';
 
 const Welcome = () => {
-  const count = useSelector((store: RootState) => store.AUTH.value);
-  const dispatch: any = useDispatch();
   const navigation: any = useNavigation();
 
   return (
