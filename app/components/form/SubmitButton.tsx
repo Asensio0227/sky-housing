@@ -21,7 +21,7 @@ const SubmitButton: React.FC<{
     <Button
       icon={icon}
       mode={mode}
-      onPress={() => handleSubmit}
+      onPress={() => handleSubmit()}
       contentStyle={{ width }}
       style={style}
     >

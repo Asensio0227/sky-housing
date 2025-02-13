@@ -7,7 +7,7 @@ const ErrorMessage: React.FC<{ visible: boolean; error: string }> = ({
 }) => {
   if (!visible || !error) return null;
   return (
-    <Text variant='labelMedium' style={{ color: MD3Colors.error100 }}>
+    <Text variant='labelMedium' style={{ color: MD3Colors.error50 }}>
       {error}
     </Text>
   );

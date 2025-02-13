@@ -1,25 +1,24 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MD2DarkTheme } from 'react-native-paper';
-import AppText from './AppText';
 
 const TextLink: React.FC<{ text: string; linkText: string; link: any }> = ({
   text,
   linkText,
   link,
 }) => {
-  // const navigation: any = useNavigation();
+  const navigation: any = useNavigation();
 
   return (
     <View style={styles.formContainer}>
-      <AppText style={styles.formText} title={text} />
+      <Text style={styles.formText}>{text}</Text>
       <Pressable
         onPress={() => {
-          // navigation.navigate(link);
-          console.log(link);
+          navigation.navigate(link);
         }}
       >
-        <AppText style={styles.link} title={linkText} />
+        <Text style={styles.link}>{linkText}</Text>
       </Pressable>
     </View>
   );
@@ -34,6 +33,7 @@ const styles = StyleSheet.create({
   formText: {
     marginRight: 5,
     textAlign: 'center',
+    marginVertical: 2,
   },
   link: {
     color: MD2DarkTheme.colors.primary,

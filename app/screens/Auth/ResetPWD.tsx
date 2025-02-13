@@ -1,46 +1,67 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import AppText from '../../components/AppText';
-import AppForm from '../../components/form/AppForm';
+import { RootState } from '../../../store';
+import Form from '../../components/form/AppForm';
 import FormInput from '../../components/form/FormInput';
-import SubmitButton from '../../components/form/SubmitButton';
+import ResetInput from '../../components/form/ResetInput';
+import Submit from '../../components/form/SubmitButton';
+import Loading from '../../components/Loading';
 import TextLink from '../../components/TextLink';
+import {
+  requestResetPassword,
+  ResetUserPassword,
+} from '../../features/authSlice/authSliceSlice';
 
 const ResetPwd = () => {
   const [successfulCreation, setSuccessfulCreation] = useState(false);
   const navigation: any = useNavigation();
+  const { isLoading } = useSelector((store: RootState) => store.AUTH);
   const dispatch = useDispatch();
-  const [isLoading, setILoading] = useState(false);
 
-  const onRequestReset = async (data: any) => {};
+  const toggleBtn = () => setSuccessfulCreation(!successfulCreation);
+
+  const onRequestReset = async (data: any) => {
+    try {
+      await dispatch(requestResetPassword(data) as any);
+      setSuccessfulCreation(true);
+    } catch (error: any) {
+      console.log(`Error submitting code: ${error.message}`);
+    } finally {
+      toggleBtn();
+    }
+  };
 
   // Reset the password with the code and the new password
-  const onReset = async (data: any) => {};
+  const onReset = async (data: any) => {
+    try {
+      await dispatch(ResetUserPassword(data) as any);
+      navigation.navigate('sign-in');
+    } catch (error: any) {
+      console.log(`Error submitting code: ${error.message}`);
+    }
+  };
+
+  if (isLoading) return <Loading />;
 
   return (
     <View style={styles.container}>
       {!successfulCreation && (
-        <AppForm
+        <ResetInput
           initialValues={{ email: '' }}
-          onSubmit={onRequestReset}
-          validationSchema={Yup.object().shape({
+          onPress={onRequestReset}
+          validateSchema={Yup.object().shape({
             email: Yup.string().email().required('Please enter your email'),
           })}
-        >
-          <AppText
-            title='Enter email to reset password
-'
-          />
-          <FormInput name='email' icon='email' placeholder='Email' />
-          <SubmitButton title='submit' />
-        </AppForm>
+          subTitle='Enter email to reset password'
+          title='submit'
+        />
       )}
 
       {successfulCreation && (
-        <AppForm
+        <Form
           initialValues={{ password: '', token: '', email: '' }}
           validationSchema={Yup.object().shape({
             token: Yup.string()
@@ -49,7 +70,7 @@ const ResetPwd = () => {
             email: Yup.string().email().required('Please enter your email.'),
             password: Yup.string()
               .required('Password is required')
-              .min(5, 'Password is too short - should be 6 chars minimum'),
+              .min(8, 'Password is too short - should be 8 chars minimum'),
           })}
           onSubmit={onReset}
         >
@@ -62,19 +83,26 @@ const ResetPwd = () => {
             />
             <FormInput name='password' icon='lock' placeholder='New password' />
           </View>
-          <SubmitButton title='submit' />
-        </AppForm>
+          <Submit title='submit' />
+        </Form>
       )}
-      <TextLink
-        text='I already have a account?'
-        linkText='sign-in'
-        link='login'
-      />
-      <TextLink
-        text="I don't have a account?"
-        linkText='Create Account'
-        link='sign-up'
-      />
+      <View
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <TextLink
+          text='I already have a account?'
+          linkText='sign-in'
+          link='sign-in'
+        />
+        <TextLink
+          text="I don't have a account?"
+          linkText='Create Account'
+          link='sign-up'
+        />
+      </View>
     </View>
   );
 };
@@ -82,8 +110,6 @@ const ResetPwd = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
     marginVertical: 10,
   },
   containerCenter: {

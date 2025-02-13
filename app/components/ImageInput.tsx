@@ -76,7 +76,7 @@ export default ImageInput;
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: MD2Colors.grey200,
+    backgroundColor: MD2Colors.grey400,
     borderRadius: 15,
     height: 100,
     justifyContent: 'center',

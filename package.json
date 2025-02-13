@@ -24,6 +24,7 @@
     "@reduxjs/toolkit": "^2.5.1",
     "@sentry/react-native": "~6.3.0",
     "@shopify/flash-list": "1.7.1",
+    "apisauce": "^3.1.0",
     "axios": "^1.7.9",
     "expo": "~52.0.31",
     "expo-app-loading": "^2.1.1",
@@ -31,6 +32,7 @@
     "expo-dev-client": "~5.0.11",
     "expo-device": "~7.0.2",
     "expo-font": "~13.0.3",
+    "expo-image-manipulator": "~13.0.6",
     "expo-image-picker": "~16.0.5",
     "expo-linear-gradient": "~14.0.2",
     "expo-location": "~18.0.5",
@@ -56,6 +58,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
+    "@types/react-native-vector-icons": "^6.4.18",
     "typescript": "^5.3.3"
   },
   "private": true

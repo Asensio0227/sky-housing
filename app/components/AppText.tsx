@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { MD2Colors, Text } from 'react-native-paper';
 
 const AppText: React.FC<{
-  title: string;
+  title: string | Number | any;
   style?: any;
   variant?: any;
   color?: any;
@@ -31,7 +31,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontSize: 10,
     fontWeight: '900',
-    paddingVertical: 20,
     fontFamily: ' OpenSans_700Bold_Italic,',
   },
 });

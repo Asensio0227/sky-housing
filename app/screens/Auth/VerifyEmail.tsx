@@ -1,25 +1,52 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { MD2Colors, MD3Colors } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
+import { MD2Colors, MD2DarkTheme, MD3Colors } from 'react-native-paper';
+import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
+import { RootState } from '../../../store';
+import AppButton from '../../components/AppButton';
+import AppText from '../../components/AppText';
 import AppForm from '../../components/form/AppForm';
 import FormInput from '../../components/form/FormInput';
+import ResetInput from '../../components/form/ResetInput';
 import SubmitButton from '../../components/form/SubmitButton';
-import TextLink from '../../components/TextLink';
+import Loading from '../../components/Loading';
+import {
+  resendAccountCode,
+  verifyEmail,
+} from '../../features/authSlice/authSliceSlice';
 
 const VerifyEmail = () => {
-  const [resend, setRend] = useState(false);
+  const [resend, setResend] = useState(false);
+  const navigation: any = useNavigation();
+  const dispatch: any = useDispatch();
+  const { isLoading } = useSelector((store: RootState) => store.AUTH);
+
+  const toggleBtn = () => setResend(!resend);
 
   const handleChange = async (data: any) => {
-    console.log(`====verify-email====`);
-    console.log(data);
-    console.log(`====verify-email====`);
+    try {
+      await dispatch(verifyEmail(data));
+    } catch (error: any) {
+      console.log(`Error submitting code: ${error.message}`);
+    } finally {
+      navigation.navigate('welcome');
+    }
   };
 
-  const handleResend = () => {
-    setRend(false);
-    console.log('Resend clicked');
+  const handleResend = async (email: string) => {
+    try {
+      await dispatch(resendAccountCode(email));
+    } catch (error: any) {
+      console.log(`Error submitting code: ${error.message}`);
+    } finally {
+      setResend(false);
+    }
   };
+
+  if (isLoading) return <Loading />;
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       {!resend ? (
@@ -35,7 +62,10 @@ const VerifyEmail = () => {
             style={styles.inputContainer}
             onSubmit={handleChange}
           >
-            <Text>Enter your code</Text>
+            <AppText
+              style={{ fontSize: 15, textDecorationLine: 'underline' }}
+              title='Enter your code'
+            />
             <FormInput
               name='email'
               icon='email'
@@ -50,33 +80,43 @@ const VerifyEmail = () => {
 
             <SubmitButton title='verify email' />
           </AppForm>
-          <TextLink
-            text='I forgot my password?'
-            linkText='resend code'
-            link='reset'
-          />
+          <View>
+            <AppButton
+              title="i haven't received code? resend code"
+              onPress={toggleBtn}
+              mode='text'
+              style={{
+                color: MD2DarkTheme.colors.primary,
+                textDecorationLine: 'underline',
+              }}
+            />
+          </View>
         </>
       ) : (
-        <AppForm
-          initialValues={{ email: '', token: '' }}
-          validationSchema={Yup.object().shape({
-            token: Yup.string()
-              .required('Please enter verification code.')
-              .length(6, 'Code must be exactly 6 characters long'),
-            email: Yup.string().email().required('Please enter your email.'),
-          })}
-          style={styles.inputContainer}
-          onSubmit={handleChange}
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignContent: 'center' }}
         >
-          <Text>Enter email to resend code</Text>
-          <FormInput
-            name='email'
-            icon='email'
-            label='Email'
-            placeholder='Email'
+          <ResetInput
+            initialValues={{ email: '' }}
+            validateSchema={Yup.object().shape({
+              email: Yup.string().email().required('Please enter your email.'),
+            })}
+            onPress={handleResend}
+            title='resend code'
+            subTitle='Enter email to resend code'
           />
-          <SubmitButton title='resend code' />
-        </AppForm>
+          <AppButton
+            title='Go back to verify email'
+            onPress={toggleBtn}
+            mode='text'
+            style={{
+              color: MD2DarkTheme.colors.primary,
+              textDecorationLine: 'underline',
+              alignContent: 'center',
+              justifyContent: 'center',
+            }}
+          />
+        </View>
       )}
     </View>
   );
@@ -101,7 +141,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     color: MD2Colors.green200,
-    backgroundColor: 'white',
     fontSize: 24,
     width: '90%',
     fontWeight: 'bold',
@@ -109,12 +148,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: MD2Colors.green600,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
   },
   title: {
     fontSize: 15,

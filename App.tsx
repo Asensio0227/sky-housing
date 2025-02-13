@@ -19,6 +19,7 @@ import {
 } from '@expo-google-fonts/open-sans';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
+import { NavigationContainer } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
@@ -27,11 +28,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
-import { Provider as StoreProvider } from 'react-redux';
+import { Provider as StoreProvider, useSelector } from 'react-redux';
 import Screen from './app/components/Screen';
 import useNotifications from './app/hooks/useNotifications';
-import SiginIn from './app/screens/Auth/SiginIn';
-import { store } from './store';
+import AuthNavigation from './app/navigation/AuthNavigation';
+import DrawerNavigation from './app/navigation/DrawerNavigation';
+import { RootState, store } from './store';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,6 +67,7 @@ function App() {
     OpenSans_700Bold_Italic,
     OpenSans_800ExtraBold_Italic,
   });
+  const { user } = useSelector((store: RootState) => store.AUTH);
 
   useEffect(() => {
     async function prepare() {
@@ -101,7 +104,9 @@ function App() {
 
   return (
     <Screen onLayout={onLayoutRootView}>
-      <SiginIn />
+      <NavigationContainer>
+        {user ? <DrawerNavigation /> : <AuthNavigation />}
+      </NavigationContainer>
     </Screen>
   );
 }
@@ -128,4 +133,5 @@ function Main() {
   );
 }
 
-export default Sentry.wrap(Main);
+// export default Sentry.wrap(Main);
+export default Main;

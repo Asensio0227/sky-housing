@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
@@ -9,6 +10,7 @@ import AppText from '../../components/AppText';
 const Welcome = () => {
   const count = useSelector((store: RootState) => store.AUTH.value);
   const dispatch: any = useDispatch();
+  const navigation: any = useNavigation();
 
   return (
     <ImageBackground
@@ -36,9 +38,12 @@ const Welcome = () => {
         <AppButton
           style={{ color: 'white' }}
           title='Sign in'
-          onPress={() => console.log('Sign-in')}
+          onPress={() => navigation.navigate('sign-in')}
         />
-        <AppButton title='Sign up' onPress={() => console.log('Sign-up')} />
+        <AppButton
+          title='Sign up'
+          onPress={() => navigation.navigate('sign-up')}
+        />
       </View>
     </ImageBackground>
   );

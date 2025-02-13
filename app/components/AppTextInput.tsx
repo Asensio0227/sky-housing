@@ -14,7 +14,7 @@ const AppTextInput: React.FC<{
   icon = 'email',
   label,
   placeholder,
-  mode = 'outline',
+  mode = 'text',
   style,
   ...otherProps
 }) => {

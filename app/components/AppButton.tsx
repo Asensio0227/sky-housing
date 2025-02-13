@@ -1,12 +1,12 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { GestureResponderEvent, StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 import AppText from './AppText';
 
 const AppButton: React.FC<{
   title: string;
   style?: any;
-  onPress: any;
+  onPress: (e?: GestureResponderEvent) => void | any;
   mode?: any;
   icon?: any;
   [key: string]: any;
@@ -17,7 +17,7 @@ const AppButton: React.FC<{
   icon = 'account',
   onPress,
   style,
-  color = 'white',
+  color = 'black',
   ...otherProps
 }) => {
   return (
@@ -28,7 +28,7 @@ const AppButton: React.FC<{
       style={[style, { marginVertical: 10 }]}
       {...otherProps}
     >
-      <AppText color={color} title={title} {...otherProps} />
+      <AppText style={styles} color={color} title={title} {...otherProps} />
     </Button>
   );
 };
