@@ -2,7 +2,9 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef, useState } from 'react';
-import { Button, Platform, Text, View } from 'react-native';
+import { Platform } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { expoPushNotification } from '../features/auth/authSlice';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -22,6 +24,7 @@ const useNotifications = () => {
   >(undefined);
   const notificationListener = useRef<Notifications.EventSubscription>();
   const responseListener = useRef<Notifications.EventSubscription>();
+  const dispatch: any = useDispatch();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(
@@ -42,6 +45,9 @@ const useNotifications = () => {
       Notifications.addNotificationResponseReceivedListener((response) => {
         console.log(response);
       });
+
+    (async () =>
+      expoPushToken && (await dispatch(expoPushNotification(expoPushToken))))();
 
     return () => {
       notificationListener.current &&

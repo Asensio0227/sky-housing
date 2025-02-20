@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, ToastAndroid, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
@@ -26,8 +26,13 @@ const validateSchema = Yup.object().shape({
 const SiginIn = () => {
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
   const dispatch: any = useDispatch();
-  const { location } = useLocation();
   const { expoPushToken } = useNotifications();
+  const { location } = useLocation();
+
+  if (expoPushToken === undefined && location === undefined) {
+    alert('Please await few minutes, network is slow');
+    return;
+  }
 
   const onSubmit = async (data: UserDocument) => {
     try {
@@ -39,7 +44,7 @@ const SiginIn = () => {
         userAds_address.coordinates = [longitude, latitude];
       } else {
         console.log(
-          'Coordinates are not available! Please allow app to yse your location.'
+          'Coordinates are not available! Please allow app to use your location.'
         );
       }
       data.expoToken = expoPushToken;

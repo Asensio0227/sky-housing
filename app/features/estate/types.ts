@@ -23,7 +23,7 @@ export interface IPhoto {
 
 export enum statusOption {
   online = 'online',
-  offline = 'offline', // Changed from Offline to offline
+  offline = 'offline',
 }
 
 export interface Location {
@@ -34,14 +34,6 @@ export interface Location {
 export interface modalTypes {
   type: String;
   required?: [true, string];
-  minlength?: number;
-  maxlength?: number;
-  trim?: true;
-  unique?: true;
-  validate?: {
-    validator: (str: string, options?: any) => boolean;
-    message: string;
-  };
 }
 
 export interface addressOb {
@@ -56,4 +48,11 @@ export interface ContactOb {
   phone_number: modalTypes;
   email: modalTypes;
   address?: modalTypes;
+}
+
+export enum sortOptions {
+  Az = 'a-z',
+  Za = 'z-a',
+  Newest = 'newest',
+  Oldest = 'oldest',
 }

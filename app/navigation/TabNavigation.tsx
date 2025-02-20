@@ -14,6 +14,7 @@ const TabNavigation = () => {
         name='landing'
         component={HomeNavigation}
         options={{
+          tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name='home' color={color} size={size} />
           ),
@@ -39,6 +40,7 @@ const TabNavigation = () => {
         name='account'
         component={AccountNavigation}
         options={{
+          tabBarLabel: 'Account',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name='account' color={color} size={size} />
           ),

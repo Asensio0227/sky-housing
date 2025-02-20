@@ -7,13 +7,15 @@ import { customData } from '../../utils/globals';
 interface authState {
   user: UserDocument | any;
   isLoading: boolean;
-  error: string | null;
+  error: string | null | any;
+  visible: boolean;
 }
 
 const initialState = {
   user: null,
   isLoading: false,
   error: '',
+  visible: false,
 } satisfies authState as authState;
 
 // create account
@@ -22,15 +24,18 @@ export const createUserAccount = createAsyncThunk(
   async (userData: UserDocument | any, thunkAPi) => {
     try {
       const data = customData(userData);
-      const response: any = await customFetch.post(`auth/register`, data);
+      const response: any = await customFetch.post(`auth/register`, data, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       if (!response.ok) {
-        console.log(response.data?.msg);
+        throw new Error(response.data.msg);
       }
       return response.data;
     } catch (error: any) {
-      return thunkAPi.rejectWithValue(
-        `Could not register user: ${error.response.data}`
-      );
+      return thunkAPi.rejectWithValue(`Could not register user: ${error}`);
     }
   }
 );
@@ -39,12 +44,13 @@ export const resendAccountCode = createAsyncThunk(
   'auth/resend-code',
   async (email: string, thunkApi) => {
     try {
-      const response = await customFetch.post(`auth/resend-code`, email);
+      const response: any = await customFetch.post(`auth/resend-code`, email);
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
-      return thunkApi.rejectWithValue(
-        `Error resending code: ${error.response.data}`
-      );
+      return thunkApi.rejectWithValue(`Error resending code: ${error}`);
     }
   }
 );
@@ -54,15 +60,16 @@ export const verifyEmail = createAsyncThunk(
   async (data: any, thunkApi) => {
     try {
       const { email, token } = data;
-      const response = await customFetch.post('auth/verify-email', {
+      const response: any = await customFetch.post('auth/verify-email', {
         email,
         verificationToken: Number(token),
       });
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
-      return thunkApi.rejectWithValue(
-        `Error verifying email: ${error.response.data}`
-      );
+      return thunkApi.rejectWithValue(`Error verifying email: ${error}`);
     }
   }
 );
@@ -71,10 +78,13 @@ export const signInUser = createAsyncThunk(
   'auth/sign-in',
   async (userData: UserDocument, thunkApi) => {
     try {
-      const response = await customFetch.post('auth/login', userData);
+      const response: any = await customFetch.post('auth/login', userData);
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
-      return thunkApi.rejectWithValue(`Error sign-in: ${error.response.data}`);
+      return thunkApi.rejectWithValue(`Error sign-in: ${error}`);
     }
   }
 );
@@ -83,10 +93,16 @@ export const requestResetPassword = createAsyncThunk(
   'auth/forgot-password',
   async (data: { email: string }, { rejectWithValue }) => {
     try {
-      const response = await customFetch.post('auth/forgot-password', data);
+      const response: any = await customFetch.post(
+        'auth/forgot-password',
+        data
+      );
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(`Error forgot password: ${error.response.data}`);
+      return rejectWithValue(`Error forgot password: ${error}`);
     }
   }
 );
@@ -96,16 +112,17 @@ export const ResetUserPassword = createAsyncThunk(
   async (data: any, thunkApi) => {
     try {
       const { email, token, password } = data;
-      const response = await customFetch.post(`auth/reset-password`, {
+      const response: any = await customFetch.post(`auth/reset-password`, {
         email,
         token: Number(token),
         password,
       });
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
-      return thunkApi.rejectWithValue(
-        `Error resetting password: ${error.response.data}`
-      );
+      return thunkApi.rejectWithValue(`Error resetting password: ${error}`);
     }
   }
 );
@@ -114,11 +131,13 @@ export const signOutUser = createAsyncThunk(
   'auth/logout',
   async (_, thunkApi) => {
     try {
-      await customFetch.delete('auth/logout');
+      const response: any = await customFetch.delete('auth/logout');
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
+      return response.data;
     } catch (error: any) {
-      return thunkApi.rejectWithValue(
-        `Error logging out: ${error.response.data}`
-      );
+      return thunkApi.rejectWithValue(`Error logging out: ${error}`);
     }
   }
 );
@@ -127,11 +146,14 @@ export const currentUser = createAsyncThunk(
   'auth/show',
   async (_, thunkApi) => {
     try {
-      const response = await customFetch.get('user/showMe');
+      const response: any = await customFetch.get('user/showMe');
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
       return thunkApi.rejectWithValue(
-        `Error retrieving current user: ${error.response.data}`
+        `Error retrieving current user: ${error}`
       );
     }
   }
@@ -141,28 +163,62 @@ export const updateUser = createAsyncThunk(
   'auth/update',
   async (data: UserDocument, thunkApi) => {
     try {
-      console.log(`===data====`);
-      console.log(data);
-      console.log(`===data====`);
-      // const userData = customData(data);
-      console.log(`===userData====`);
-      // console.log(userData);
-      console.log(`===userData====`);
-      const response = await customFetch.put('user/update-user', data);
-      console.log(`=====response=====`);
-      console.log(response);
-      console.log(`=====response=====`);
+      const profile = true;
+      const userData = customData(data, profile);
+      const response: any = await customFetch.put(
+        'user/update-user',
+        userData,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
       return response.data;
     } catch (error: any) {
-      return thunkApi.rejectWithValue(
-        `Error updating user: ${error.response.data}`
-      );
+      return thunkApi.rejectWithValue(`Error updating user: ${error}`);
+    }
+  }
+);
+// change password
+export const changePassword = createAsyncThunk(
+  'auth/change-password',
+  async (data: { oldPassword: string; newPassword: string }, thunkApi) => {
+    try {
+      const response: any = await customFetch.patch('user', data);
+      if (!response.ok) {
+        throw new Error(response.data.msg);
+      }
+      return response.data;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(`Error changing password: ${error}`);
+    }
+  }
+);
+// expo token
+export const expoPushNotification = createAsyncThunk(
+  'user/expoToken',
+  async (expoPushToken: any, thunkApi) => {
+    try {
+      const response = await customFetch.post('user/expo-token', {
+        expoToken: expoPushToken,
+      });
+      if (!response.ok) {
+        throw new Error(response.problem);
+      }
+      return response.data;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(`Error posting expo token: ${error}`);
     }
   }
 );
 
 const authSlice = createSlice({
-  name: 'counter',
+  name: 'auth',
   initialState,
   reducers: {
     setUser: (state, action) => {
@@ -170,6 +226,12 @@ const authSlice = createSlice({
     },
     removeUser: (state) => {
       state.user = null;
+    },
+    showModal: (state) => {
+      state.visible = true;
+    },
+    hideModal: (state) => {
+      state.visible = false;
     },
   },
   extraReducers: (builder) => {
@@ -301,23 +363,46 @@ const authSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        // state.user = action.payload.user;
-        console.log(`===fulfilled====`);
-        console.log(action);
-        console.log(`===fulfilled====`);
+        state.user = action.payload.user;
         ToastAndroid.showWithGravity('Success! user updated.', 15000, 0);
       })
       .addCase(updateUser.rejected, (state, action: any) => {
         state.isLoading = false;
         state.error = action.payload;
-        console.log(`===rejected====`);
-        console.log(action);
-        console.log(`===rejected====`);
-        ToastAndroid.showWithGravity('Success! user updated.', 15000, 0);
+        ToastAndroid.showWithGravity(action.payload, 15000, 0);
       });
     // ********* change password *********
+    builder
+      .addCase(changePassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(changePassword.fulfilled, (state, action: any) => {
+        state.isLoading = false;
+        ToastAndroid.showWithGravity('Success! password changed.', 15000, 0);
+      })
+      .addCase(changePassword.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        ToastAndroid.showWithGravity(action.payload, 15000, 0);
+      });
+    // expo token
+    builder
+      .addCase(expoPushNotification.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(expoPushNotification.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(expoPushNotification.rejected, (state, action: any) => {
+        state.isLoading = false;
+        ToastAndroid.showWithGravity(
+          `Error! Expo token : ${action.payload}`,
+          15000,
+          0
+        );
+      });
   },
 });
 
-export const { setUser, removeUser } = authSlice.actions;
+export const { setUser, removeUser, showModal, hideModal } = authSlice.actions;
 export default authSlice.reducer;

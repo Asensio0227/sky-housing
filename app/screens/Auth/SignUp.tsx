@@ -91,7 +91,7 @@ const SignUp = () => {
       }}
       validationSchema={validateSchema}
       onSubmit={onSubmit}
-      title='Update Account'
+      title='create Account'
     />
   );
 };

@@ -37,14 +37,12 @@ const EditProfile = () => {
   const dispatch: any = useDispatch();
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
 
-  const handleUpdate = async ({ item }: { item: UserDocument }) => {
+  const onSubmit = async (item: UserDocument) => {
     try {
-      const result = await dispatch(updateUser(item));
-      console.log(`===result====`);
-      console.log(result);
-      console.log(`===result====`);
+      await dispatch(updateUser(item));
+      navigation.goBack();
     } catch (error: any) {
-      console.log(`Error while updating user: ${error}`);
+      console.log(`Error while updating user: ${error.message}`);
     }
   };
 
@@ -53,24 +51,24 @@ const EditProfile = () => {
   return (
     <Setup
       initialValues={{
-        avatar: user?.avatar || '',
-        first_name: user?.first_name || '',
-        last_name: user?.last_name || '',
-        username: user?.username || '',
-        email: user?.email || '',
-        gender: user?.gender || '',
-        date_of_birth: user?.date_of_birth || '',
-        phone_number: user?.contact_details.phone_number || '',
-        street: user?.physical_address.street || '',
-        city: user?.physical_address.city || '',
-        province: user?.physical_address.province || '',
-        postal_code: user?.physical_address.postal_code || '',
-        country: user?.physical_address.country || '',
+        avatar: user.avatar || '',
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        username: user.username || '',
+        email: user.email || '',
+        gender: user.gender || '',
+        date_of_birth: user.date_of_birth || '',
+        phone_number: user.contact_details.phone_number || '',
+        street: user.physical_address.street || '',
+        city: user.physical_address.city || '',
+        province: user.physical_address.province || '',
+        postal_code: user.physical_address.postal_code || '',
+        country: user.physical_address.country || '',
         ideaNumber: user.ideaNumber || '',
       }}
       validationSchema={validateSchema}
-      onSubmit={handleUpdate}
-      title='Update Account'
+      onSubmit={onSubmit}
+      title='update Account'
       edit={true}
     />
   );

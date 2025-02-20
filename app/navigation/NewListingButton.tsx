@@ -5,7 +5,10 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 const NewListingButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={{ alignItems: 'center', justifyContent: 'center' }}
+    >
       <View style={styles.container}>
         <MaterialCommunityIcons name='plus-circle' color='white' size={40} />
       </View>

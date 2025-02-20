@@ -29,6 +29,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
 import { Provider as StoreProvider, useSelector } from 'react-redux';
+import OffLineNotice from './app/components/OffLineNotice';
 import Screen from './app/components/Screen';
 import useNotifications from './app/hooks/useNotifications';
 import AuthNavigation from './app/navigation/AuthNavigation';
@@ -42,13 +43,13 @@ SplashScreen.setOptions({
   fade: true,
 });
 
-Sentry.init({
-  // dsn: process.env.EXPO_SENTRY_DNS as string,
-  dsn: 'https://4a53a4a40f5dc5fc4d14928a9bdffed6@o4508772966727680.ingest.us.sentry.io/4508782695219200',
-  // tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
-  debug: true,
-});
+// Sentry.init({
+//   // dsn: process.env.EXPO_SENTRY_DNS as string,
+//   dsn: 'https://4a53a4a40f5dc5fc4d14928a9bdffed6@o4508772966727680.ingest.us.sentry.io/4508782695219200',
+//   // tracesSampleRate: 1.0,
+//   profilesSampleRate: 1.0,
+//   debug: true,
+// });
 
 function App() {
   const networkState = Network.useNetworkState();
@@ -69,9 +70,6 @@ function App() {
     OpenSans_800ExtraBold_Italic,
   });
   const { user } = useSelector((store: RootState) => store.AUTH);
-  console.log(`====user====`);
-  console.log(user);
-  console.log(`====user====`);
 
   useEffect(() => {
     async function prepare() {
@@ -108,6 +106,7 @@ function App() {
 
   return (
     <Screen onLayout={onLayoutRootView}>
+      <OffLineNotice />
       <NavigationContainer>
         {user ? <DrawerNavigation /> : <AuthNavigation />}
       </NavigationContainer>

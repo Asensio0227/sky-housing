@@ -1,6 +1,5 @@
 import { useFormikContext } from 'formik';
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import AppTextInput from '../AppTextInput';
 import ErrorMessage from './ErrorMessage';
@@ -111,5 +110,3 @@ const FormInput: React.FC<{
 };
 
 export default FormInput;
-
-const styles = StyleSheet.create({});

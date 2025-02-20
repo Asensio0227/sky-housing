@@ -7,17 +7,18 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { MD2Colors } from 'react-native-paper';
+import { MD2Colors, PaperProvider, Portal } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import AppButton from '../../components/AppButton';
 import AppText from '../../components/AppText';
-import { currentUser } from '../../features/auth/authSlice';
+import ViewModal from '../../components/ViewModal';
+import { currentUser, showModal } from '../../features/auth/authSlice';
 
 const windowWidth = Dimensions.get('window').width;
 
 const Profile = () => {
-  const { user } = useSelector((store: RootState) => store.AUTH);
+  const { user, visible } = useSelector((store: RootState) => store.AUTH);
   const dispatch: any = useDispatch();
   const navigation: any = useNavigation();
 
@@ -30,7 +31,7 @@ const Profile = () => {
           console.log(`Error fetching current user : ${error}`);
         }
       })();
-    }, [user])
+    }, [dispatch])
   );
 
   const {
@@ -47,173 +48,183 @@ const Profile = () => {
   } = user;
 
   return (
-    <ScrollView style={styles.container}>
-      <ImageBackground
-        source={
-          avatar ? { uri: avatar } : require('../../assets/user-icon.png')
-        }
-        width={200}
-        height={200}
-        resizeMode='cover'
-        style={styles.bckground}
-      >
-        <AppButton
-          title='edit profile'
-          mode='outlined'
-          onPress={() => navigation.navigate('edit-profile', user)}
-          style={styles.btn}
-          color={MD2Colors.purple900}
-        />
-      </ImageBackground>
-      <View style={styles.details}>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Name : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.subTitle}
-            title={first_name}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Surname : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.subTitle}
-            title={last_name}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Username : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.subTitle}
-            title={username}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Email : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={[styles.subTitle, { textTransform: 'none' }]}
-            title={email}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Gender : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.subTitle}
-            title={gender}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='ID number : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.subTitle}
-            title={ideaNumber}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Date of birth : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.subTitle}
-            title={date_of_birth}
-          />
-        </View>
-        <AppText variant='displayMedium' title='Contact details : ' />
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Phone : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title={contact_details?.phone_number}
-          />
-        </View>
-        <AppText variant='displayMedium' title='Physical Address : ' />
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Street : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title={physical_address?.street}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='City : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title={physical_address?.city}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Province : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title={physical_address?.province}
-          />
-        </View>
-        <View style={styles.pre}>
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title='Country : '
-          />
-          <AppText
-            color={MD2Colors.purple50}
-            style={styles.title}
-            title={physical_address?.country}
-          />
-        </View>
-      </View>
-    </ScrollView>
+    <PaperProvider>
+      <Portal>
+        <ScrollView style={styles.container}>
+          <ImageBackground
+            source={
+              avatar ? { uri: avatar } : require('../../assets/user-icon.png')
+            }
+            width={200}
+            height={200}
+            resizeMode='stretch'
+            style={styles.bckground}
+          >
+            <AppButton
+              title='edit profile'
+              mode='outlined'
+              onPress={() => navigation.navigate('edit-profile', user)}
+              style={styles.btn}
+              color={MD2Colors.purple900}
+            />
+          </ImageBackground>
+          <View style={styles.details}>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Name : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.subTitle}
+                title={first_name}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Surname : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.subTitle}
+                title={last_name}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Username : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.subTitle}
+                title={username}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Email : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={[styles.subTitle, { textTransform: 'none' }]}
+                title={email}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Gender : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.subTitle}
+                title={gender}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='ID number : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.subTitle}
+                title={ideaNumber}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Date of birth : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.subTitle}
+                title={date_of_birth}
+              />
+            </View>
+            <AppText variant='displayMedium' title='Contact details : ' />
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Phone : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title={contact_details?.phone_number}
+              />
+            </View>
+            <AppText variant='displayMedium' title='Physical Address : ' />
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Street : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title={physical_address?.street}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='City : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title={physical_address?.city}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Province : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title={physical_address?.province}
+              />
+            </View>
+            <View style={styles.pre}>
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title='Country : '
+              />
+              <AppText
+                color={MD2Colors.purple50}
+                style={styles.title}
+                title={physical_address?.country}
+              />
+            </View>
+            <AppButton
+              title='change Password'
+              onPress={() => dispatch(showModal())}
+              color={MD2Colors.purple900}
+            />
+          </View>
+        </ScrollView>
+        {visible && <ViewModal />}
+      </Portal>
+    </PaperProvider>
   );
 };
 
@@ -234,6 +245,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   details: {
+    flex: 1,
     paddingHorizontal: 5,
     marginVertical: 5,
   },
