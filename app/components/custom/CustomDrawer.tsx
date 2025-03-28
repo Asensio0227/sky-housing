@@ -8,8 +8,8 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { removeUser, signOutUser } from '../features/auth/authSlice';
+import { RootState } from '../../../store';
+import { removeUser, signOutUser } from '../../features/auth/authSlice';
 import Loading from './Loading';
 
 const CustomDrawer: React.FC = (props: any) => {
@@ -37,7 +37,7 @@ const CustomDrawer: React.FC = (props: any) => {
               source={
                 user && user.avatar
                   ? { uri: user.avatar }
-                  : require('../assets/user-icon.png')
+                  : require('../../assets/user-icon.png')
               }
               style={{
                 // backgroundColor: palette.secondaryLight,

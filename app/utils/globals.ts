@@ -1,5 +1,4 @@
 // import * as ImageManipulator from 'expo-image-manipulator';
-
 import { UserDocument } from '../components/form/FormInput';
 import { IPhoto, UIEstateDocument } from '../features/estate/types';
 
@@ -94,11 +93,17 @@ export const customD = (ads: UIEstateDocument | any) => {
   return formData;
 };
 
-// export const resizeImage = async (uri: string) => {
-//   const manipResult = await ImageManipulator.manipulateAsync(
-//     uri,
-//     [{ resize: { width: 200, height: 200 } }],
-//     { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+// export const resizeImage = async (uriArr: IPhoto[], width: number) => {
+//   return Promise.all(
+//     uriArr.map(async (img: IPhoto | any) => {
+//       const { id, url } = img;
+//       const { uri } = await ImageManipulator.manipulateAsync(
+//         url,
+//         [{ resize: { width, height: width / 2 } }],
+//         { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+//       );
+//       const uris = { uri, id };
+//       return uris; // Returns the URI of the resized image
+//     })
 //   );
-//   return manipResult.uri; // Returns the URI of the resized image
 // };

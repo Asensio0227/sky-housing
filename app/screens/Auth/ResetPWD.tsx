@@ -4,12 +4,12 @@ import { StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { RootState } from '../../../store';
+import Loading from '../../components/custom/Loading';
+import TextLink from '../../components/custom/TextLink';
 import Form from '../../components/form/AppForm';
 import FormInput from '../../components/form/FormInput';
 import ResetInput from '../../components/form/ResetInput';
 import Submit from '../../components/form/SubmitButton';
-import Loading from '../../components/Loading';
-import TextLink from '../../components/TextLink';
 import {
   requestResetPassword,
   ResetUserPassword,

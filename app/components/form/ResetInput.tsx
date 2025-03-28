@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { MD2Colors, MD3Colors } from 'react-native-paper';
-import AppText from '../AppText';
+import AppText from '../custom/AppText';
 import AppForm from './AppForm';
 import FormInput from './FormInput';
 import SubmitButton from './SubmitButton';

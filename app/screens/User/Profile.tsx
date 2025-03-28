@@ -10,9 +10,9 @@ import {
 import { MD2Colors, PaperProvider, Portal } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
-import AppButton from '../../components/AppButton';
-import AppText from '../../components/AppText';
-import ViewModal from '../../components/ViewModal';
+import AppButton from '../../components/custom/AppButton';
+import AppText from '../../components/custom/AppText';
+import ViewModal from '../../components/custom/ViewModal';
 import { currentUser, showModal } from '../../features/auth/authSlice';
 
 const windowWidth = Dimensions.get('window').width;

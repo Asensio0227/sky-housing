@@ -4,12 +4,12 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { RootEstateState } from '../../../store';
+import UploadProgressBar from '../../components/custom/UploadProgressBar';
 import AppForm from '../../components/form/AppForm';
 import FormImage from '../../components/form/FormImage';
 import FormInput from '../../components/form/FormInput';
 import FormSelector from '../../components/form/FormSelector';
 import SubmitButton from '../../components/form/SubmitButton';
-import UploadProgressBar from '../../components/UploadProgressBar';
 import { createAd } from '../../features/estate/estateSlice';
 import useLocation from '../../hooks/useLocation';
 

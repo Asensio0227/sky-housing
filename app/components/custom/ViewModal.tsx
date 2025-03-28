@@ -4,16 +4,16 @@ import { Modal } from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { RootState } from '../../store';
+import { RootState } from '../../../store';
 import {
   changePassword,
   hideModal,
   removeUser,
   signOutUser,
-} from '../features/auth/authSlice';
-import Form from './form/AppForm';
-import Input from './form/FormInput';
-import SubmitButton from './form/SubmitButton';
+} from '../../features/auth/authSlice';
+import Form from '../form/AppForm';
+import Input from '../form/FormInput';
+import SubmitButton from '../form/SubmitButton';
 import Loading from './Loading';
 
 const validateSchema = Yup.object().shape({

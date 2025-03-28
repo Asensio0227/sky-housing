@@ -2,7 +2,7 @@ import { useFormikContext } from 'formik';
 import React from 'react';
 import { StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { MD3Colors, TextInput } from 'react-native-paper';
-import AppTextInput from '../AppTextInput';
+import AppTextInput from '../custom/AppTextInput';
 
 const FormSelector: React.FC<{ name: any; options: any }> = ({
   options,

@@ -2,8 +2,8 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
-import AppButton from '../../components/AppButton';
-import AppText from '../../components/AppText';
+import AppButton from '../../components/custom/AppButton';
+import AppText from '../../components/custom/AppText';
 
 const Welcome = () => {
   const navigation: any = useNavigation();

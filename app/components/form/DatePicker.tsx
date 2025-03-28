@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 import { MD3Colors } from 'react-native-paper';
 import { formatDate } from '../../utils/globals';
-import AppTextInput from '../AppTextInput';
+import AppTextInput from '../custom/AppTextInput';
 
 const DatePicker: React.FC<{
   name: string;

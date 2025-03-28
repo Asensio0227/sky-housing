@@ -1,14 +1,11 @@
 import { ScrollView } from 'react-native';
-import Text from '../components/AppText';
-import Form from '../components/form/AppForm';
-import DatePicker from '../components/form/DatePicker';
-import {
-  default as FormImage,
-  default as ImageInput,
-} from '../components/form/FormImage';
-import Input from '../components/form/FormInput';
-import Submit from '../components/form/SubmitButton';
-import TextLink from '../components/TextLink';
+import Form from '../form/AppForm';
+import DatePicker from '../form/DatePicker';
+import { default as FormImage, default as ImageInput } from '../form/FormImage';
+import Input from '../form/FormInput';
+import Submit from '../form/SubmitButton';
+import Text from './AppText';
+import TextLink from './TextLink';
 
 const Setup: React.FC<{
   initialValues: any;

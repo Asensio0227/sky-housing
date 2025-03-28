@@ -5,13 +5,13 @@ import { MD2Colors, MD2DarkTheme, MD3Colors } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { RootState } from '../../../store';
-import AppButton from '../../components/AppButton';
-import AppText from '../../components/AppText';
+import AppButton from '../../components/custom/AppButton';
+import AppText from '../../components/custom/AppText';
+import Loading from '../../components/custom/Loading';
 import AppForm from '../../components/form/AppForm';
 import FormInput from '../../components/form/FormInput';
 import ResetInput from '../../components/form/ResetInput';
 import SubmitButton from '../../components/form/SubmitButton';
-import Loading from '../../components/Loading';
 import { resendAccountCode, verifyEmail } from '../../features/auth/authSlice';
 
 const VerifyEmail = () => {

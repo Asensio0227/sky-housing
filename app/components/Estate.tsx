@@ -1,80 +1,58 @@
 import React from 'react';
-import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { MD2Colors, MD2DarkTheme } from 'react-native-paper';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Card, MD2Colors } from 'react-native-paper';
 import { UIEstateDocument } from '../features/estate/types';
-import AppText from './AppText';
+
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 
 const Estate: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
+  const {
+    photo,
+    user: { avatar, username },
+  } = items;
+
   return (
-    <>
-      {items.photo.map((avatar) => {
-        return (
-          <ImageBackground
-            key={avatar.id}
-            source={{ uri: avatar.url }}
-            style={{ width: 200, height: 200 }}
-            resizeMode='cover'
-          >
-            <View style={styles.container}>
-              <View style={styles.user}>
-                <Image
-                  source={require('../assets/user-icon.png')}
-                  style={styles.userProfile}
-                />
-                <View
-                  style={{
-                    alignItems: 'flex-start',
-                    marginLeft: 5,
-                  }}
-                >
-                  <AppText
-                    color={MD2DarkTheme.colors.text}
-                    style={styles.username}
-                    title={items.user}
-                  />
-                  <AppText
-                    style={styles.subTitle}
-                    color={MD2Colors.amberA700}
-                    title={items.average_rating}
-                  />
-                </View>
-              </View>
-            </View>
-            <Text
-              style={{
-                bottom: 5,
-                color: 'white',
-                fontSize: 12,
-                fontFamily: ' OpenSans_400Regular',
-                paddingHorizontal: 5,
-              }}
-              numberOfLines={2}
-            >
-              {items.description}
-            </Text>
-          </ImageBackground>
-        );
-      })}
-    </>
+    <View style={styles.bannerContainer}>
+      <View style={styles.container}>
+        <Card.Cover
+          style={[{ width, height: width / 2, borderRadius: 0 }]}
+          source={{ uri: photo[0].url }}
+        />
+        <View style={styles.user}>
+          <Image
+            source={
+              avatar ? { uri: avatar } : require('../assets/user-icon.png')
+            }
+            style={styles.userProfile}
+          />
+          <Text style={styles.subTitle}>{username}</Text>
+        </View>
+      </View>
+    </View>
   );
 };
 
 export default Estate;
 
 const styles = StyleSheet.create({
+  bannerContainer: {
+    position: 'relative',
+    flex: 1,
+  },
   container: {
     flex: 1,
     flexDirection: 'row',
-    position: 'relative',
-    marginVertical: 10,
-    marginHorizontal: 10,
     overflow: 'hidden',
+    width,
+    height: height / 2,
   },
   user: {
     position: 'absolute',
-    top: 0,
-    left: 0,
+    top: 10,
+    left: 10,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   userProfile: {
     width: 50,
@@ -85,6 +63,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   subTitle: {
-    top: -20,
+    fontSize: 12,
+    color: MD2Colors.grey800,
+    marginLeft: 10,
   },
 });

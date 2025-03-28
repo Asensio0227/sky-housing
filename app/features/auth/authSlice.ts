@@ -218,7 +218,7 @@ export const expoPushNotification = createAsyncThunk(
 );
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: 'AUTH',
   initialState,
   reducers: {
     setUser: (state, action) => {

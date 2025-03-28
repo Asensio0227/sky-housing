@@ -40,7 +40,9 @@
       [
         "expo-font",
         {
-          "fonts": ["node_modules/@expo-google-fonts/inter/Inter_900Black.ttf"]
+          "fonts": [
+            "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf"
+          ]
         }
       ],
       [
@@ -69,7 +71,8 @@
           "project": "sentry project name, or use the `SENTRY_PROJECT` environment variable",
           "url": "https://sentry.io/"
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {

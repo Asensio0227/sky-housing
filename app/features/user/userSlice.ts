@@ -72,7 +72,7 @@ export const retrieveUser = createAsyncThunk(
 );
 
 const userSlice = createSlice({
-  name: 'user',
+  name: 'USER',
   initialState,
   reducers: {
     handleChange: (state: any, { payload: { name, value } }) => {

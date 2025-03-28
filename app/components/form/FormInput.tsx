@@ -1,7 +1,7 @@
 import { useFormikContext } from 'formik';
 import React from 'react';
 import { TextInput } from 'react-native-paper';
-import AppTextInput from '../AppTextInput';
+import AppTextInput from '../custom/AppTextInput';
 import ErrorMessage from './ErrorMessage';
 
 export enum statusOption {
