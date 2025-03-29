@@ -4,8 +4,8 @@ import {
   Dimensions,
   Share,
   StyleSheet,
+  TouchableHighlight,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import ImageView from 'react-native-image-viewing';
@@ -23,7 +23,6 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
   const { user, photo } = items;
   const [readMore, setReadMore] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [commentsVisible, setCommentsVisible] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const images: { id: string; uri: string } | any = photo.map(
     (img: IPhoto) => ({
@@ -65,7 +64,7 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
 
   return (
     <View style={{ position: 'relative' }}>
-      <TouchableWithoutFeedback onPress={() => console.warn('highlight')}>
+      <TouchableHighlight onPress={() => navigation.navigate('details', items)}>
         <View style={styles.container}>
           <View
             style={{
@@ -114,7 +113,7 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
             </TouchableOpacity>
           ))}
         </View>
-      </TouchableWithoutFeedback>
+      </TouchableHighlight>
       <ImageView
         images={images}
         imageIndex={0}
@@ -205,5 +204,7 @@ const styles = StyleSheet.create({
   textInfo: {
     marginBottom: 3,
     paddingHorizontal: 3,
+    fontSize: 12,
+    color: MD2Colors.grey800,
   },
 });

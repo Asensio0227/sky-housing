@@ -1,20 +1,8 @@
-import {
-  createAsyncThunk,
-  createSlice,
-  GetThunkAPI,
-  ThunkAction,
-} from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { ToastAndroid } from 'react-native';
-import customFetch, { url } from '../../utils/axios';
+import customFetch from '../../utils/axios';
 import { customD } from '../../utils/globals';
-import {
-  AsyncThunkConfig,
-  categoryOption,
-  IPhoto,
-  sortOptions,
-  UIEstateDocument,
-} from './types';
+import { categoryOption, sortOptions, UIEstateDocument } from './types';
 
 interface Houses {
   isLoading: boolean;
@@ -187,6 +175,9 @@ const estateSlice = createSlice({
     setPage: (state, action) => {
       state.page = action.payload;
     },
+    clearFilters: (state) => {
+      return { ...state };
+    },
   },
   extraReducers: (builder) => {
     // create ad
@@ -235,7 +226,7 @@ const estateSlice = createSlice({
       .addCase(retrieveAd.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(retrieveAd.pending, (state, action) => {
+      .addCase(retrieveAd.fulfilled, (state, action) => {
         state.isLoading = false;
         const { ad }: any = action.payload;
         state.singleHouse = ad;
@@ -353,5 +344,5 @@ const estateSlice = createSlice({
   },
 });
 
-export const { handleChange } = estateSlice.actions;
+export const { handleChange, setPage, clearFilters } = estateSlice.actions;
 export default estateSlice.reducer;
