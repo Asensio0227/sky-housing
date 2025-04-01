@@ -1,4 +1,5 @@
 // import * as ImageManipulator from 'expo-image-manipulator';
+import { Option } from '../components/custom/AppPicker';
 import { UserDocument } from '../components/form/FormInput';
 import { IPhoto, UIEstateDocument } from '../features/estate/types';
 
@@ -73,24 +74,35 @@ export const customD = (ads: UIEstateDocument | any) => {
   };
   const formData = new FormData();
   const stringifiedLocation = JSON.stringify(ads.location);
-  formData.append(`location`, stringifiedLocation);
-  Object.entries(contact_details).forEach(([key, value]: any) => {
-    formData.append(`contact_details[${key}]`, value);
-  });
-  formData.append('title', ads.title);
-  formData.append('description', ads.description);
-  formData.append('price', ads.price.toString());
-  formData.append('category', ads.category);
+  if (ads.location) formData.append(`location`, stringifiedLocation);
+  if (ads.address)
+    Object.entries(contact_details).forEach(([key, value]: any) => {
+      formData.append(`contact_details[${key}]`, value);
+    });
+  if (ads.title) formData.append('title', ads.title);
+  if (ads.description) formData.append('description', ads.description);
+  if (ads.price) formData.append('price', ads.price.toString());
+  if (ads.category) formData.append('category', ads.category);
+  if (ads.taken) formData.append('taken', ads.taken);
 
-  ads.photo.forEach((img: IPhoto | any, index: any) => {
-    formData.append('media', {
-      uri: img,
-      name: 'uploaded_image.jpg' + index,
-      type: 'image/jpeg',
-    } as any);
-  });
+  if (ads.photo.length > 0)
+    ads.photo.forEach((img: IPhoto | any, index: any) => {
+      formData.append('media', {
+        uri: img,
+        name: 'uploaded_image.jpg' + index,
+        type: 'image/jpeg',
+      } as any);
+    });
 
   return formData;
+};
+
+export const formatArray = (data: any) => {
+  const op: Option[] = data.map((item: string) => {
+    return { label: item.charAt(0).toUpperCase() + item.slice(1), value: item };
+  });
+
+  return op;
 };
 
 // export const resizeImage = async (uriArr: IPhoto[], width: number) => {

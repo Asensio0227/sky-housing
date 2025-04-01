@@ -1,11 +1,11 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Share,
   StyleSheet,
-  TouchableHighlight,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import ImageView from 'react-native-image-viewing';
@@ -20,7 +20,8 @@ const width = Dimensions.get('screen').width;
 
 const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
   const navigation: any = useNavigation();
-  const { user, photo } = items;
+  const router: any = useRoute();
+  const { user, photo, average_rating } = items;
   const [readMore, setReadMore] = useState(false);
   const [visible, setVisible] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
@@ -64,7 +65,13 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
 
   return (
     <View style={{ position: 'relative' }}>
-      <TouchableHighlight onPress={() => navigation.navigate('details', items)}>
+      <TouchableWithoutFeedback
+        onPress={() =>
+          router.name === 'listings'
+            ? navigation.navigate('details', items)
+            : navigation.navigate('info', items)
+        }
+      >
         <View style={styles.container}>
           <View
             style={{
@@ -73,7 +80,12 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
             }}
           >
             <View>
-              <UserProfile style={{ marginLeft: 18 }} user={user} />
+              <UserProfile
+                style={{ marginLeft: 18 }}
+                user={user}
+                rating={average_rating}
+                items={items}
+              />
               <Text style={styles.desc} variant='titleSmall'>
                 {readMore
                   ? items.description
@@ -92,7 +104,7 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
             </View>
           </View>
           {photo.slice(0, 1).map((image) => (
-            <TouchableOpacity
+            <TouchableWithoutFeedback
               onPress={() => setVisible(true)}
               key={image.id}
               style={styles.imgContainer}
@@ -110,10 +122,10 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
                   source={{ uri: image.url }}
                 />
               </View>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
           ))}
         </View>
-      </TouchableHighlight>
+      </TouchableWithoutFeedback>
       <ImageView
         images={images}
         imageIndex={0}

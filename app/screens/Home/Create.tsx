@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { RootEstateState } from '../../../store';
+import ListingSetup from '../../components/custom/ListingSetup';
 import UploadProgressBar from '../../components/custom/UploadProgressBar';
 import AppForm from '../../components/form/AppForm';
 import FormImage from '../../components/form/FormImage';
@@ -84,8 +85,6 @@ const Create = () => {
     }
   };
 
-  const arr = ['Apartments', 'Houses', 'Condos', 'Villas', 'Land'];
-
   if (isLoading) {
     return (
       <UploadProgressBar uploadVisible={uploadVisible} progress={progress} />
@@ -93,53 +92,18 @@ const Create = () => {
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={{ alignItems: 'center', justifyContent: 'center' }}
-      style={styles.container}
-    >
-      <AppForm
-        initialValues={{
-          title: '',
-          category: '',
-          photo: [],
-          description: '',
-          price: '',
-          address: '',
-        }}
-        validationSchema={validateSchema}
-        onSubmit={onSubmit}
-      >
-        <FormImage name='photo' />
-        <FormInput
-          name='title'
-          label='Title'
-          placeholder='Enter title'
-          icon='format-title'
-        />
-        <FormInput
-          name='address'
-          label='Address'
-          placeholder='Enter address'
-          icon='google-maps'
-        />
-        <FormInput
-          name='description'
-          label='Description'
-          placeholder='Enter description'
-          icon='card-text-outline'
-          multiline={true}
-        />
-        <FormInput
-          name='price'
-          label='Price'
-          placeholder='Enter price'
-          icon='numeric'
-          multiline={true}
-        />
-        <FormSelector name='category' options={arr} />
-        <SubmitButton title='create' />
-      </AppForm>
-    </ScrollView>
+    <ListingSetup
+      initialValues={{
+        title: '',
+        category: '',
+        photo: [],
+        description: '',
+        price: '',
+        address: '',
+      }}
+      validationSchema={validateSchema}
+      onSubmit={onSubmit}
+    />
   );
 };
 

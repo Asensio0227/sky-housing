@@ -5,7 +5,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { ActivityIndicator, MD3Colors } from 'react-native-paper';
+import { ActivityIndicator, MD2Colors, MD3Colors } from 'react-native-paper';
 import { IPhoto } from '../features/estate/types';
 
 const ImageGrid: React.FC<{ data: IPhoto[] | any }> = ({ data }) => {
@@ -14,7 +14,7 @@ const ImageGrid: React.FC<{ data: IPhoto[] | any }> = ({ data }) => {
   if (!mainImg) return <ActivityIndicator size={'small'} />;
 
   return (
-    <View>
+    <View style={{ marginBottom: -15, backgroundColor: MD2Colors.grey300 }}>
       <Image style={styles.img} source={{ uri: mainImg.url }} />
       <View style={styles.gallery}>
         {data &&

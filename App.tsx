@@ -20,7 +20,7 @@ import {
 import Entypo from '@expo/vector-icons/Entypo';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { NavigationContainer } from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
+// import * as Sentry from '@sentry/react-native';
 import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
 import * as Network from 'expo-network';

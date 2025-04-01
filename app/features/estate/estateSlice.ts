@@ -7,6 +7,7 @@ import { categoryOption, sortOptions, UIEstateDocument } from './types';
 interface Houses {
   isLoading: boolean;
   houses: UIEstateDocument[];
+  filteredHouses: UIEstateDocument[];
   featuredAds: UIEstateDocument[];
   singleHouse: UIEstateDocument | null | any;
   singleHouseWithComments: UIEstateDocument | null | any;
@@ -16,17 +17,22 @@ interface Houses {
   userAdsPage: Number;
   search: string;
   page: Number;
+  userPage: Number;
   sort: string;
   sortOption: sortOptions[];
   category: string;
   categoryOptions: categoryOption[];
   totalAds: Number;
   numOfPages: Number;
+  isRefreshing: Boolean | any;
+  hasMore: Boolean;
 }
 
 const initialState: Houses = {
+  hasMore: true,
   isLoading: false,
   houses: [],
+  filteredHouses: [],
   singleHouse: null,
   singleHouseWithComments: null,
   featuredAds: [],
@@ -35,7 +41,9 @@ const initialState: Houses = {
   userAdsPage: 1,
   numOfUserAdsPages: 0,
   page: 1,
+  userPage: 1,
   search: '',
+  isRefreshing: false,
   sort: sortOptions.Newest,
   sortOption: Object.values(sortOptions),
   category: categoryOption.All,
@@ -91,6 +99,26 @@ export const retrieveAllAds = createAsyncThunk(
     }
   }
 );
+// retrieve all ads
+export const retrieveFilterAds = createAsyncThunk(
+  'estate/filter-all',
+  async (_, thunkApi: any) => {
+    const { search, page, sort, category } = thunkApi.getState().ESTATE;
+    const params = new URLSearchParams({
+      sort,
+      category,
+      page: String(page),
+      ...(search && { search }),
+    });
+    const url = `estate?${params.toString()}`;
+    try {
+      const response = await customFetch.get(url);
+      return response.data;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(`Error retrieving ad: ${error}`);
+    }
+  }
+);
 // retrieve ad
 export const retrieveAd = createAsyncThunk(
   'estate/retrieve-ad',
@@ -121,11 +149,11 @@ export const retrieveAdWithComments = createAsyncThunk(
 export const retrieveUserAds = createAsyncThunk(
   'estate/retrieve-user-ads',
   async (_, thunkApi: any) => {
-    const { page, sort, category } = thunkApi.getState().ESTATE;
+    const { userPage, sort, category } = thunkApi.getState().ESTATE;
     const params = new URLSearchParams({
       sort,
       category,
-      page: String(page),
+      page: String(userPage),
     });
     let url = `estate/user-ads?${params.toString()}`;
     try {
@@ -141,10 +169,20 @@ export const updateAd = createAsyncThunk(
   'estate/update-ad',
   async (data: any, thunkApi) => {
     try {
+      const listing = customD(data);
       const response = await customFetch.put(
         `estate/update-ad/${data.id}`,
-        data
+        listing,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
+      if (!response.ok) {
+        throw new Error(response.originalError.message);
+      }
       return response.data;
     } catch (error: any) {
       return thunkApi.rejectWithValue(`Error updating ${data.id},${error}`);
@@ -163,6 +201,20 @@ export const deleteAd = createAsyncThunk(
     }
   }
 );
+// mark as taken
+export const markAdAsTaken = createAsyncThunk(
+  'estate/taken',
+  async (productId, thunkApi) => {
+    try {
+      const response = await customFetch.patch(`estate/${productId}`);
+      return response.data;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(
+        `Error changing ad status ${productId}, ${error}`
+      );
+    }
+  }
+);
 
 const estateSlice = createSlice({
   name: 'ESTATE',
@@ -177,6 +229,18 @@ const estateSlice = createSlice({
     },
     clearFilters: (state) => {
       return { ...state };
+    },
+    resetAds: (state) => {
+      state.userAds = [];
+      state.userPage = 1;
+      state.hasMore = true;
+    },
+    setIsReFreshing: (state, action) => {
+      state.isRefreshing = action.payload;
+    },
+    removeAd: (state, action) => {
+      state.userAds.filter((ad: any) => ad._id_ !== action.payload);
+      state.houses.filter((ad: any) => ad._id_ !== action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -202,18 +266,49 @@ const estateSlice = createSlice({
       .addCase(retrieveAllAds.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(retrieveAllAds.fulfilled, (state, action: any) => {
+      .addCase(retrieveAllAds.fulfilled, (state: any, action: any) => {
+        const { totalAds, numOfPages, ads } = action.payload;
+        if (ads && ads.length === 0) {
+          state.hasMore = false;
+        } else {
+          const newAds = ads;
+          state.houses = [
+            ...state.houses,
+            ...newAds.filter(
+              (newAd: UIEstateDocument) =>
+                !state.houses.some(
+                  (existingAd: UIEstateDocument) => existingAd.id === newAd.id
+                )
+            ),
+          ];
+          state.totalAds = totalAds;
+          state.numOfPages = numOfPages;
+          state.page += 1;
+          state.featuredAds = ads.filter(
+            (item: UIEstateDocument) => item.featured === true
+          );
+        }
         state.isLoading = false;
-        const { numOfPages, ads, totalAds, page } = action.payload;
-        state.houses = ads;
-        state.totalAds = totalAds;
-        state.numOfPages = numOfPages;
-        state.page = page;
-        state.featuredAds = ads.filter(
-          (item: UIEstateDocument) => item.featured === true
-        );
       })
       .addCase(retrieveAllAds.rejected, (state, action: any) => {
+        state.isLoading = false;
+        ToastAndroid.showWithGravity(
+          `Error retrieving ads: ${action.payload}`,
+          15000,
+          0
+        );
+      });
+    // retrieve filter ads
+    builder
+      .addCase(retrieveFilterAds.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(retrieveFilterAds.fulfilled, (state: any, action: any) => {
+        const { filteredAds } = action.payload;
+        state.isLoading = false;
+        state.filteredHouses = filteredAds;
+      })
+      .addCase(retrieveFilterAds.rejected, (state, action: any) => {
         state.isLoading = false;
         ToastAndroid.showWithGravity(
           `Error retrieving ads: ${action.payload}`,
@@ -230,9 +325,6 @@ const estateSlice = createSlice({
         state.isLoading = false;
         const { ad }: any = action.payload;
         state.singleHouse = ad;
-        console.log(`=====retrieve ad fulfilled====`);
-        console.log(action);
-        console.log(`=====retrieve ad fulfilled====`);
       })
       .addCase(retrieveAd.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -241,9 +333,6 @@ const estateSlice = createSlice({
           15000,
           0
         );
-        console.log(`=====retrieve ad rejected====`);
-        console.log(action);
-        console.log(`=====retrieve ad rejected====`);
       });
     // retrieve ad with comments
     builder
@@ -253,9 +342,6 @@ const estateSlice = createSlice({
       .addCase(retrieveAdWithComments.fulfilled, (state, action) => {
         state.isLoading = false;
         state.singleHouseWithComments = action.payload;
-        console.log(`=====retrieve ad with comments fulfilled====`);
-        console.log(action);
-        console.log(`=====retrieve ad with comments fulfilled====`);
       })
       .addCase(retrieveAdWithComments.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -264,34 +350,39 @@ const estateSlice = createSlice({
           15000,
           0
         );
-        console.log(`=====retrieve ad with comments rejected====`);
-        console.log(action);
-        console.log(`=====retrieve ad with comments rejected====`);
       });
     builder
       .addCase(retrieveUserAds.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(retrieveUserAds.fulfilled, (state, action) => {
-        state.isLoading = true;
-        const { totalAds, numOfPages, ads } = action.payload;
-        state.userAds = ads;
-        state.numOfUserAdsPages = numOfPages;
-        state.userAdsTotal = totalAds;
-        console.log(`=====retrieve user ads fulfilled====`);
-        console.log(action);
-        console.log(`=====retrieve user ads fulfilled====`);
+      .addCase(retrieveUserAds.fulfilled, (state: any, action) => {
+        if (action.payload.ads.length === 0) {
+          state.hasMore = false;
+        } else {
+          const { totalAds, numOfPages, ads } = action.payload;
+          const newAds = ads;
+          state.userAds = [
+            ...state.userAds,
+            ...newAds.filter(
+              (newAd: UIEstateDocument) =>
+                !state.userAds.some(
+                  (existingAd: UIEstateDocument) => existingAd.id === newAd.id
+                )
+            ),
+          ];
+          state.numOfUserAdsPages = numOfPages;
+          state.userAdsTotal = totalAds;
+          state.userPage += 1;
+        }
+        state.isLoading = false;
       })
       .addCase(retrieveUserAds.rejected, (state, action: any) => {
         state.isLoading = false;
         ToastAndroid.showWithGravity(
-          `Error retrieving ad: ${action.payload}`,
+          `Error retrieving ad: ${action.payload.msg}`,
           15000,
           0
         );
-        console.log(`=====retrieve user ads rejected====`);
-        console.log(action);
-        console.log(`=====retrieve user ads  rejected====`);
       });
     builder
       .addCase(updateAd.pending, (state) => {
@@ -300,9 +391,6 @@ const estateSlice = createSlice({
       .addCase(updateAd.fulfilled, (state, action: any) => {
         state.isLoading = false;
         state.houses = action.payload;
-        console.log(`=====updating ad fulfilled====`);
-        console.log(action);
-        console.log(`=====updating ad  fulfilled====`);
       })
       .addCase(updateAd.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -311,9 +399,6 @@ const estateSlice = createSlice({
           15000,
           0
         );
-        console.log(`=====updating ad rejected====`);
-        console.log(action);
-        console.log(`=====updating ad  rejected====`);
       });
     builder
       .addCase(deleteAd.pending, (state) => {
@@ -322,13 +407,10 @@ const estateSlice = createSlice({
       .addCase(deleteAd.fulfilled, (state, action: any) => {
         state.isLoading = false;
         ToastAndroid.showWithGravity(
-          `Success! Ad removed ${action.payload} from the list`,
+          action.payload.msg || `Success! Ad removed from the list`,
           15000,
           0
         );
-        console.log(`=====removing ad fulfilled====`);
-        console.log(action);
-        console.log(`=====removing ad  fulfilled====`);
       })
       .addCase(deleteAd.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -337,12 +419,42 @@ const estateSlice = createSlice({
           15000,
           0
         );
-        console.log(`=====removing ad rejected====`);
+      });
+    builder
+      .addCase(markAdAsTaken.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(markAdAsTaken.fulfilled, (state, action: any) => {
+        state.isLoading = false;
+        ToastAndroid.showWithGravity(
+          action.payload.msg || `Success! Ad marked as taken`,
+          15000,
+          0
+        );
+        console.log(`====action fulfilled===`);
         console.log(action);
-        console.log(`=====removing ad  rejected====`);
+        console.log(`====action fulfilled===`);
+      })
+      .addCase(markAdAsTaken.rejected, (state, action: any) => {
+        state.isLoading = false;
+        ToastAndroid.showWithGravity(
+          `Error changing ad status: ${action.payload}`,
+          15000,
+          0
+        );
+        console.log(`====action rejected===`);
+        console.log(action);
+        console.log(`====action rejected===`);
       });
   },
 });
 
-export const { handleChange, setPage, clearFilters } = estateSlice.actions;
+export const {
+  handleChange,
+  setPage,
+  clearFilters,
+  resetAds,
+  setIsReFreshing,
+  removeAd,
+} = estateSlice.actions;
 export default estateSlice.reducer;

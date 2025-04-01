@@ -1,45 +1,33 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import { Searchbar } from 'react-native-paper';
+import React, { useCallback, useState } from 'react';
+import { Animated, Dimensions, Text, View } from 'react-native';
+import { ActivityIndicator, Appbar, MD3Colors } from 'react-native-paper';
+import { useSharedValue } from 'react-native-reanimated';
+import Carousel, { ICarouselInstance } from 'react-native-reanimated-carousel';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootEstateState } from '../../../store';
+import Screen from '../../components/custom/Screen';
 import Estate from '../../components/Estate';
 import EstateContainer from '../../components/EstateContainer';
-import Screen from '../../components/custom/Screen';
-import {
-  handleChange,
-  retrieveAllAds,
-} from '../../features/estate/estateSlice';
-import { UIEstateDocument } from '../../features/estate/types';
-// import { resizeImage } from '../../utils/globals';
-import debounce from 'lodash.debounce';
-import { useSharedValue } from 'react-native-reanimated';
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from 'react-native-reanimated-carousel';
-import Loading from '../../components/custom/Loading';
+import { retrieveAllAds } from '../../features/estate/estateSlice';
 
 const width = Dimensions.get('window').width;
 
 const Home = () => {
-  const {
-    search,
-    isLoading,
-    houses,
-    numOfPages,
-    page,
-    featuredAds,
-    sort,
-    category,
-  } = useSelector((store: RootEstateState) => store.ESTATE);
+  const { isLoading, houses, hasMore, page, featuredAds, search, category } =
+    useSelector((store: RootEstateState) => store.ESTATE);
   const dispatch: any = useDispatch();
   const ref = React.useRef<ICarouselInstance>(null);
   const progress = useSharedValue<number>(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(search);
+  const scrollY = new Animated.Value(0);
+  const diffClamp = Animated.diffClamp(scrollY, 0, 50);
+  const translateY = diffClamp.interpolate({
+    inputRange: [0, 50],
+    outputRange: [0, -50],
+  });
+  const navigation: any = useNavigation();
 
   const onPressPagination = (index: number) => {
     ref.current?.scrollTo({
@@ -48,21 +36,11 @@ const Home = () => {
     });
   };
 
-  // const handleResize = async () => {
-  //   const newUri = await resizeImage('your_image_uri_here');
-  // };
-
-  useFocusEffect(
-    useCallback(() => {
-      (async () => {
-        try {
-          await dispatch(retrieveAllAds());
-        } catch (error: any) {
-          console.log(`Err fetching ads : ${error}`);
-        }
-      })();
-    }, [search, page, sort, category])
-  );
+  const handleScrollEndReached = () => {
+    if (!isLoading && hasMore) {
+      dispatch(retrieveAllAds());
+    }
+  };
 
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -70,26 +48,35 @@ const Home = () => {
     setIsRefreshing(false);
   };
 
-  const handleSearch = debounce(
-    () => dispatch(handleChange({ name: 'search', value: searchTerm })),
-    5000
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        try {
+          console.warn('fetching......');
+
+          await dispatch(retrieveAllAds());
+        } catch (error: any) {
+          console.log(`Err fetching ads : ${error}`);
+        }
+      })();
+    }, [search, category, page, isLoading])
   );
 
-  useEffect(() => {
-    if (isLoading) return;
-    handleSearch();
-  }, [searchTerm]);
-
-  if (isLoading) return <Loading />;
-
   return (
-    <Screen style={{ flex: 1, overflow: 'scroll' }}>
-      <Searchbar
-        placeholder='Search'
-        onChangeText={(text) => setSearchTerm(text)}
-        value={searchTerm}
-      />
-      <View style={{ flex: 1, top: 5 }}>
+    <View style={{ flex: 1, overflow: 'scroll', position: 'relative' }}>
+      <Animated.View style={{ transform: [{ translateY }] }}>
+        <Appbar.Header>
+          <Appbar.Content
+            title='Your Next Home Awaits!'
+            subtitle={'Subtitle'}
+          />
+          <Appbar.Action
+            icon='magnify'
+            onPress={() => navigation.navigate('search')}
+          />
+        </Appbar.Header>
+      </Animated.View>
+      <View style={{ flex: 1 }}>
         <FlashList
           data={houses}
           ListHeaderComponent={
@@ -125,14 +112,30 @@ const Home = () => {
           renderItem={({ item }) => <EstateContainer items={item} />}
           estimatedItemSize={200}
           scrollEnabled
+          onScroll={(e) => scrollY.setValue(e.nativeEvent.contentOffset.y)}
           pagingEnabled
           refreshing={isRefreshing}
           onRefresh={onRefresh}
           contentContainerStyle={{ paddingHorizontal: 10 }}
           showsVerticalScrollIndicator={true}
+          onEndReached={handleScrollEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={() =>
+            !hasMore ? (
+              <Text style={{ color: MD3Colors.primary60 }}>
+                No more data....
+              </Text>
+            ) : (
+              isLoading && (
+                <Screen style={{ padding: 1, marginVertical: 20 }}>
+                  <ActivityIndicator size='small' />
+                </Screen>
+              )
+            )
+          }
         />
       </View>
-    </Screen>
+    </View>
   );
 };
 

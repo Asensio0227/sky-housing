@@ -4,10 +4,9 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
-  Image,
+  Animated,
   ScrollView,
   Share,
   StyleSheet,
@@ -20,8 +19,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootEstateState } from '../../../store';
+import Loading from '../../components/custom/Loading';
 import UserProfile from '../../components/custom/UserProfile';
 import ImageGrid from '../../components/ImageGrid';
+import Comment from '../../components/reviews/Comment';
 import { retrieveAdWithComments } from '../../features/estate/estateSlice';
 import { UIEstateDocument } from '../../features/estate/types';
 
@@ -35,8 +36,8 @@ const Details = () => {
   const dispatch: any = useDispatch();
   const [readMore, setReadMore] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
-
-  // const {_id,average_rating,category,contact_details:{address,email,phone_number,createdAt,description.numOfReviews,photo,price,title,user:{_id,contact_details:{email,phone_number,username},}}}=items
+  const [visible, setVisible] = useState(false);
+  const scrollRef: any = useRef(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,8 +54,9 @@ const Details = () => {
   );
 
   useEffect(() => {
-    if (images.length > 0) {
-      setImageUrl(images[0].uri);
+    if (items && items.photo.length > 0) {
+      const images = items && items.photo;
+      setImageUrl(images[0].url);
     }
   }, []);
 
@@ -83,15 +85,19 @@ const Details = () => {
     }
   };
 
+  if (isLoading) return <Loading />;
+
   const images =
     singleHouseWithComments &&
     singleHouseWithComments.ad &&
     singleHouseWithComments.ad.photo;
+  const reviews = singleHouseWithComments && singleHouseWithComments.reviews;
 
   return (
     <ScrollView
       contentContainerStyle={{ alignItems: 'center' }}
       style={styles.container}
+      onContentSizeChange={() => scrollRef?.current?.scrollToEnd()}
     >
       <View>
         <UserProfile
@@ -126,6 +132,7 @@ const Details = () => {
         </Text>
       </View>
       <ImageGrid data={images} />
+      {/* **** footer **** */}
       <View style={styles.footer}>
         <TouchableOpacity
           onPress={() =>
@@ -137,7 +144,7 @@ const Details = () => {
           <AntDesign name='message1' size={12} color='black' />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate('comments', items)}
+          onPress={() => setVisible(!visible)}
           style={[
             {
               marginHorizontal: 15,
@@ -153,6 +160,49 @@ const Details = () => {
           <FontAwesome name='share' size={12} color='black' />
         </TouchableOpacity>
       </View>
+      {/* ******comments ***** */}
+      {visible && (
+        <Animated.View>
+          {reviews.length > 0 ? (
+            <View style={styles.commentContainer}>
+              <FlashList
+                data={reviews}
+                keyExtractor={(item: any) => item._id}
+                renderItem={({ item }) => (
+                  <Comment item={item} reviews={reviews} />
+                )}
+                estimatedItemSize={200}
+                scrollEnabled
+                pagingEnabled
+              />
+            </View>
+          ) : (
+            <View
+              style={{
+                borderRadius: 20,
+                padding: 8,
+                marginVertical: 5,
+                marginLeft: 5,
+                width: '80%',
+                overflow: 'hidden',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 16,
+                backgroundColor: MD2Colors.grey400,
+              }}
+            >
+              <Text
+                style={{
+                  color: MD2Colors.black,
+                  fontSize: 13,
+                }}
+              >
+                No comments yet?
+              </Text>
+            </View>
+          )}
+        </Animated.View>
+      )}
     </ScrollView>
   );
 };
@@ -161,8 +211,8 @@ export default Details;
 
 const styles = StyleSheet.create({
   container: {
-    // margin: 5,
     flex: 1,
+    marginBottom: 10,
   },
   desc: {
     fontFamily: 'OpenSans_300',
@@ -175,7 +225,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    padding: 2,
+    marginBottom: 10,
     backgroundColor: '#f5f5f5',
   },
   img: {
@@ -198,5 +249,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
     fontSize: 12,
     color: MD2Colors.grey800,
+  },
+  commentContainer: {
+    marginBottom: 10,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    right: 35,
+    marginLeft: 8,
+    width: '100%',
+    height: '100%',
   },
 });

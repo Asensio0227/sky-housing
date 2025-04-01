@@ -8,9 +8,6 @@ const UploadProgressBar: React.FC<{
   progress: number;
   uploadVisible: boolean;
 }> = ({ progress, uploadVisible }) => {
-  console.log(`====progress====`);
-  console.log(progress);
-  console.log(`====progress====`);
   return (
     <Modal visible={uploadVisible}>
       <View style={styles.container}>

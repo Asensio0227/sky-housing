@@ -8,6 +8,7 @@ const ImageList: React.FC<{
   onRemoveImage: (uri: string) => void;
 }> = ({ imageUris = [], onAddImage, onRemoveImage }) => {
   const scrollRef: any = useRef(null);
+
   return (
     <View>
       <ScrollView

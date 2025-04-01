@@ -3,6 +3,7 @@ import { MD2Colors, MD3Colors } from 'react-native-paper';
 import CustomDrawer from '../components/custom/CustomDrawer';
 import AccountNavigation from './AccountNavigation';
 import ConversationNavigator from './ConversactionNavigation';
+import MyListingNavigation from './ListingNavigation';
 import TabNavigation from './TabNavigation';
 
 const Drawer = createDrawerNavigator();
@@ -12,7 +13,9 @@ const DrawerNavigation = () => {
     <Drawer.Navigator
       screenOptions={{
         headerTitle: 'Sky house',
-        headerStyle: { backgroundColor: MD2Colors.purple800 },
+        headerStyle: {
+          backgroundColor: MD2Colors.purple800,
+        },
         headerTitleStyle: {
           fontWeight: 'bold',
           color: 'white',
@@ -27,6 +30,11 @@ const DrawerNavigation = () => {
         options={{ drawerLabel: 'Home' }}
         name='home'
         component={TabNavigation}
+      />
+      <Drawer.Screen
+        options={{ drawerLabel: 'My Listings' }}
+        name='myListings'
+        component={MyListingNavigation}
       />
       <Drawer.Screen
         options={{ drawerLabel: 'Chats' }}

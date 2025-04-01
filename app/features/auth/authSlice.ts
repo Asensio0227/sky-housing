@@ -332,15 +332,15 @@ const authSlice = createSlice({
       .addCase(signOutUser.fulfilled, (state, action: any) => {
         state.isLoading = false;
         state.user = null;
-        ToastAndroid.showWithGravity(
-          action.payload || 'Success! logging out....',
-          15000,
-          0
-        );
+        ToastAndroid.showWithGravity('Success! logging out....', 15000, 0);
       })
       .addCase(signOutUser.rejected, (state, action: any) => {
         state.isLoading = false;
-        ToastAndroid.showWithGravity(action.payload.msg, 15000, 0);
+        ToastAndroid.showWithGravity(
+          `Error while logging out ${action.payload.msg} `,
+          15000,
+          0
+        );
       });
     // ********* current user *********
     builder
