@@ -231,9 +231,7 @@ const estateSlice = createSlice({
       return { ...state };
     },
     resetAds: (state) => {
-      state.userAds = [];
-      state.userPage = 1;
-      state.hasMore = true;
+      return { ...initialState };
     },
     setIsReFreshing: (state, action) => {
       state.isRefreshing = action.payload;
@@ -366,7 +364,7 @@ const estateSlice = createSlice({
             ...newAds.filter(
               (newAd: UIEstateDocument) =>
                 !state.userAds.some(
-                  (existingAd: UIEstateDocument) => existingAd.id === newAd.id
+                  (existingAd: UIEstateDocument) => existingAd._id === newAd._id
                 )
             ),
           ];

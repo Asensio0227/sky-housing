@@ -1,4 +1,5 @@
 // import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 import { Option } from '../components/custom/AppPicker';
 import { UserDocument } from '../components/form/FormInput';
 import { IPhoto, UIEstateDocument } from '../features/estate/types';
@@ -97,12 +98,88 @@ export const customD = (ads: UIEstateDocument | any) => {
   return formData;
 };
 
+export const customMsg = (data: any) => {
+  const formData: any = new FormData();
+
+  // Append media types individually
+  if (data.photo?.length) {
+    formData.append('media', {
+      uri: data.photo[0].uri,
+      name: data.photo[0].fileName || 'photo.jpg',
+      type: data.photo[0].type || 'image/jpeg',
+    });
+  }
+
+  if (data.audio?.length) {
+    formData.append('media', {
+      uri: data.audio[0].uri,
+      name: data.audio[0].fileName || 'audio.m4a',
+      type: data.audio[0].type || 'audio/m4a',
+    });
+  }
+
+  if (data.video?.length) {
+    formData.append('media', {
+      uri: data.video[0].uri,
+      name: data.video[0].fileName || 'video.mp4',
+      type: data.video[0].type || 'video/mp4',
+    });
+  }
+
+  // Explicitly append text and roomId
+  if (data.text) {
+    formData.append('text', data.text);
+  }
+
+  if (data.roomId) {
+    formData.append('roomId', data.roomId);
+  }
+
+  // Optionally append any generic files
+  if (Array.isArray(data.files)) {
+    data.files.forEach((file: any) => {
+      formData.append('files', {
+        uri: file.uri,
+        name: file.fileName || file.name || 'file',
+        type: file.type || 'application/octet-stream',
+      });
+    });
+  }
+
+  return formData;
+};
+
 export const formatArray = (data: any) => {
   const op: Option[] = data.map((item: string) => {
     return { label: item.charAt(0).toUpperCase() + item.slice(1), value: item };
   });
 
   return op;
+};
+
+export const pickMedia = async () => {
+  const permissionResult =
+    await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permissionResult.granted) {
+    alert('Permission to access media is required!');
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    // mediaTypes: ImagePicker.All,
+    allowsEditing: false,
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    const asset = result.assets[0];
+
+    return {
+      uri: asset.uri,
+      name: asset.fileName || 'file.jpg',
+      type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg', // adjust as needed
+    };
+  }
 };
 
 // export const resizeImage = async (uriArr: IPhoto[], width: number) => {

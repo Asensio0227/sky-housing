@@ -4,13 +4,16 @@ import React, { useCallback, useState } from 'react';
 import { Animated, Dimensions, Text, View } from 'react-native';
 import { ActivityIndicator, Appbar, MD3Colors } from 'react-native-paper';
 import { useSharedValue } from 'react-native-reanimated';
-import Carousel, { ICarouselInstance } from 'react-native-reanimated-carousel';
+import Carousel, {
+  ICarouselInstance,
+  Pagination,
+} from 'react-native-reanimated-carousel';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootEstateState } from '../../../store';
 import Screen from '../../components/custom/Screen';
 import Estate from '../../components/Estate';
 import EstateContainer from '../../components/EstateContainer';
-import { retrieveAllAds } from '../../features/estate/estateSlice';
+import { resetAds, retrieveAllAds } from '../../features/estate/estateSlice';
 
 const width = Dimensions.get('window').width;
 
@@ -44,6 +47,7 @@ const Home = () => {
 
   const onRefresh = async () => {
     setIsRefreshing(true);
+    dispatch(resetAds());
     await dispatch(retrieveAllAds());
     setIsRefreshing(false);
   };
@@ -52,15 +56,22 @@ const Home = () => {
     useCallback(() => {
       (async () => {
         try {
-          console.warn('fetching......');
-
           await dispatch(retrieveAllAds());
         } catch (error: any) {
           console.log(`Err fetching ads : ${error}`);
         }
       })();
-    }, [search, category, page, isLoading])
+    }, [dispatch])
+    // }, [search, category, page, isLoading])
   );
+
+  if (houses.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>No listings available</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, overflow: 'scroll', position: 'relative' }}>

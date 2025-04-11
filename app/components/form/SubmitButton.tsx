@@ -1,7 +1,7 @@
 import { useFormikContext } from 'formik';
 import React from 'react';
 import { Text } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, MD2Colors } from 'react-native-paper';
 
 const SubmitButton: React.FC<{
   mode?: any;
@@ -23,7 +23,7 @@ const SubmitButton: React.FC<{
       mode={mode}
       onPress={() => handleSubmit()}
       contentStyle={{ width }}
-      style={style}
+      style={[style, { color: MD2Colors.purple900 }]}
     >
       <Text style={{ fontFamily: 'OpenSans_600SemiBold' }}>{title}</Text>
     </Button>

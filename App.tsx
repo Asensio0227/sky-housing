@@ -21,7 +21,6 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { NavigationContainer } from '@react-navigation/native';
 // import * as Sentry from '@sentry/react-native';
-import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
 import * as Network from 'expo-network';
 import * as SplashScreen from 'expo-splash-screen';
@@ -50,6 +49,11 @@ SplashScreen.setOptions({
 //   profilesSampleRate: 1.0,
 //   debug: true,
 // });
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Warning: Avatar: Support for defaultProps will be removed',
+]);
 
 function App() {
   const networkState = Network.useNetworkState();
@@ -90,9 +94,10 @@ function App() {
     prepare();
   }, []);
 
-  const onLayoutRootView = useCallback(() => {
+  const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
-      SplashScreen.hide();
+      // SplashScreen.hide();
+      await SplashScreen.hideAsync();
     }
   }, [appIsReady]);
 
@@ -100,9 +105,9 @@ function App() {
     return null;
   }
 
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
+  // if (!fontsLoaded) {
+  //   return <AppLoading />;
+  // }
 
   return (
     <Screen onLayout={onLayoutRootView}>

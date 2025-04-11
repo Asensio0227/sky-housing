@@ -1,6 +1,6 @@
 import { create } from 'apisauce';
 // const url = process.env.EXPO_PUBLIC_URL;
-export const url = `http://192.168.0.3:5000/api/v1`;
+export const url = `http://192.168.0.4:5000/api/v1`;
 
 const customFetch = create({
   baseURL: `${url}/`,

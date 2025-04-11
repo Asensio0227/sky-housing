@@ -46,6 +46,14 @@ const Listings = () => {
     dispatch(setIsReFreshing(false));
   };
 
+  if (userAds.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>No listings available</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <FlashList

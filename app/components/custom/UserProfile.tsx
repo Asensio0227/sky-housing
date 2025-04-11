@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import calendar from 'dayjs/plugin/calendar';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import { Appbar, Avatar, Button, MD2Colors } from 'react-native-paper';
@@ -12,13 +13,15 @@ import {
 import { UserDocument } from '../form/FormInput';
 import Rating from '../reviews/Rating';
 
+dayjs.extend(calendar);
+
 const UserProfile: React.FC<{
   user: UserDocument | any;
   style?: any;
   rating?: number | any;
   items?: any;
 }> = ({ user, style, rating, items }) => {
-  const time = moment().add(user.updatedAt, 'days').calendar();
+  const time = dayjs().add(user.updatedAt, 'day').calendar();
   const [visible, setVisible] = useState(false);
   const router: any = useRoute();
   const navigation: any = useNavigation();
