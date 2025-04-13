@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   ActivityIndicator,
@@ -9,7 +10,7 @@ import {
   Text,
 } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootChatsState, RootState } from '../../../store';
+import { RootChatsState, RootState, RootUserState } from '../../../store';
 import ContactPerson from '../../components/ContactPerson';
 import Screen from '../../components/custom/Screen';
 import {
@@ -21,29 +22,41 @@ const Chats = () => {
   const { conversations, hasMore, isLoading } = useSelector(
     (store: RootChatsState) => store.Chats
   );
+  const { page } = useSelector((store: RootUserState) => store.USER);
+  const [userB, setUserB] = useState(null);
   const { user } = useSelector((store: RootState) => store.AUTH);
   const dispatch: any = useDispatch();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchChats = async () => {
     try {
-      await dispatch(retrieveUserConversation());
+      const results = await dispatch(retrieveUserConversation());
+      console.log(results);
+      // retrieve single user
+      // dispatch(retrieveUser());
+      // // update conversations participants and participantsArray from retrieved user
+      // dispatch(updateConversation());
     } catch (error: any) {
-      console.log(`Err fetching ads : ${error}`);
+      console.log(`Err fetching chats : ${error}`);
     }
   };
 
-  // useFocusEffect(
-  useEffect(() => {
-    fetchChats();
-  }, [dispatch, user]);
-  // );
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+
+      fetchChats();
+      const intervalId = setInterval(() => {}, 10000);
+
+      return () => clearInterval(intervalId);
+    }, [user])
+  );
 
   const handleScrollEndReached = async () => {
     try {
       await dispatch(retrieveUserConversation());
     } catch (error: any) {
-      console.log(`Err fetching ads : ${error}`);
+      console.log(`Err fetching chats : ${error}`);
     }
   };
 
@@ -52,7 +65,7 @@ const Chats = () => {
       dispatch(resetConversations());
       await dispatch(retrieveUserConversation());
     } catch (error: any) {
-      console.log(`Err fetching ads : ${error}`);
+      console.log(`Err fetching chats : ${error}`);
     }
   };
 
@@ -60,7 +73,7 @@ const Chats = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.text}>No chats yet!</Text>
-        <Button onPress={fetchChats}>Refresh</Button>
+        <Button onPress={() => fetchChats()}>Refresh</Button>
       </View>
     );
   }
@@ -126,3 +139,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+// updateConversationParticipants(state, action) {
+//       const { users } = action.payload;
+
+//       state.conversations = state.conversations.map((conversation) => {
+//         const updatedParticipants = conversation.participantsArray.map((email) => {
+//           const user = users.find((u) => u.email === email);
+//           return user ? user : null;
+//         }).filter(Boolean);
+
+//         return {
+//           ...conversation,
+//           participants: updatedParticipants,
+//         };
+//       });
+//     },

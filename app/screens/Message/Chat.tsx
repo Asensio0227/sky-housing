@@ -1,28 +1,30 @@
-// @refresh reset
+// // @refresh reset
 
 import 'react-native-get-random-values';
 
+import { useFocusEffect } from '@react-navigation/native';
 import { Audio, Video } from 'expo-av';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActionSheetIOS,
   Alert,
-  Button,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   Vibration,
   View,
 } from 'react-native';
-import { Actions, GiftedChat, Message } from 'react-native-gifted-chat';
-import { IconButton, MD3Colors } from 'react-native-paper';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { GiftedChat, Message } from 'react-native-gifted-chat';
+import { ActivityIndicator, MD2Colors, MD3Colors } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootChatsState, RootState } from '../../../store';
+import AudioPlayer from '../../components/AudioPlayer';
+import AudioRecorder from '../../components/chat/AudioRecorder';
+import CustomActions from '../../components/chat/CustomActions';
+import MediaPreviewModal from '../../components/chat/MediaPreviewModal';
 import {
   renderBubble,
   renderInputToolbar,
@@ -31,19 +33,26 @@ import {
 import {
   createMsg,
   deleteMsg,
+  replaceMessages,
   retrieveMsg,
+  setLastMessage,
+  updateConversation,
   updateMsg,
 } from '../../features/chats/chatsSlice';
 import { IPhoto } from '../../features/estate/types';
-import { pickMedia } from '../../utils/globals';
+import { formatTimestamp, pickMedia } from '../../utils/globals';
 
 const ChatScreen = ({ route }: { route: any }) => {
-  const { room } = route.params;
+  const { room, user: userB } = route.params;
   const roomId = room && room._id;
   const dispatch: any = useDispatch();
-  const { messages, page, hasMore } = useSelector(
-    (state: RootChatsState) => state.Chats
-  );
+  const { lastMessage } = useSelector((state: RootChatsState) => state.Chats);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [localPage, setLocalPage] = useState(1);
+  const [hasMore, setHasMoreMessages] = useState(true);
+
+  const [firstLoad, setFirstLoad] = useState(true);
+  const [isMounted, setIsMounted] = useState(true);
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
   const { user } = useSelector((store: RootState) => store.AUTH);
   const senderUser = user && {
@@ -59,18 +68,28 @@ const ChatScreen = ({ route }: { route: any }) => {
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState<number>(0);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const chatRef = useRef<any>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const flatListRef = useRef<any>(null);
+  const contentHeightRef = useRef(0);
+  const listHeightRef = useRef(0);
   const scrollOffsetRef = useRef<number | null>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const [sendingMedia, setSendingMedia] = useState(false);
+  const [audioPreviewVisible, setAudioPreviewVisible] = useState(false);
+  const [active, setActive] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
 
-  const formatDuration = (millis: number) => {
-    const totalSeconds = Math.floor(millis / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds
-      .toString()
-      .padStart(2, '0')}`;
+  const scrollToBottom = () => {
+    if (
+      flatListRef.current &&
+      contentHeightRef.current &&
+      listHeightRef.current
+    ) {
+      flatListRef.current.scrollToOffset({
+        offset: contentHeightRef.current - listHeightRef.current,
+        animated: true,
+      });
+    }
   };
 
   const handleScroll = (event: any) => {
@@ -85,24 +104,128 @@ const ChatScreen = ({ route }: { route: any }) => {
     scrollOffsetRef.current = offsetY;
   };
 
+  const fetchData = async () => {
+    try {
+      if (firstLoad && isMounted) {
+        setInitialLoading(true);
+      }
+
+      const resp = await dispatch(retrieveMsg({ roomId, page: localPage }));
+      const newMessages = resp?.payload?.messages || [];
+      console.log(`===newMessages===`);
+      console.log(newMessages);
+      console.log(`===newMessages===`);
+
+      if (newMessages.length === 0) {
+        setHasMoreMessages(false);
+        return;
+      }
+
+      setMessages((prev) =>
+        localPage === 1 ? newMessages : [...prev, ...newMessages]
+      );
+
+      const newLastMessage =
+        newMessages.length > 0 ? newMessages[newMessages.length - 1] : null;
+
+      if (localPage === 1 && newLastMessage) {
+        lastMessageIdRef.current = newLastMessage._id;
+
+        const data = { id: roomId, lastMessage: newLastMessage };
+        dispatch(updateConversation(data));
+        dispatch(updateMsg(roomId));
+        dispatch(setLastMessage(newLastMessage));
+      }
+
+      if (localPage === 1) {
+        dispatch(replaceMessages(newMessages));
+      }
+    } catch (error) {
+      console.error('Failed to retrieve messages:', error);
+    } finally {
+      if (firstLoad && isMounted) {
+        setInitialLoading(false);
+        setFirstLoad(false);
+      }
+    }
+  };
+
+  console.log(`========`);
+  console.log(messages);
+  console.log(`========`);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!active) return;
+
+      if (isMounted) {
+        fetchData();
+      }
+
+      const intervalId = setInterval(fetchData, 5000);
+      return () => {
+        setIsMounted(false);
+        clearInterval(intervalId);
+      };
+    }, [roomId, isMounted])
+  );
+
   useEffect(() => {
-    dispatch(retrieveMsg({ roomId, page: 1 }));
-  }, [roomId]);
+    if (!lastMessage || !active) return;
+
+    const refetch = async () => {
+      try {
+        const resp = await dispatch(retrieveMsg({ roomId, page: 1 }));
+        const messages = resp?.payload?.messages || [];
+
+        const updatedLastMessage =
+          messages.length > 0 ? messages[messages.length - 1] : null;
+
+        if (
+          updatedLastMessage &&
+          updatedLastMessage._id !== lastMessageIdRef.current
+        ) {
+          lastMessageIdRef.current = updatedLastMessage._id;
+
+          const data = { id: roomId, lastMessage: updatedLastMessage };
+          dispatch(updateConversation(data));
+          dispatch(updateMsg(roomId));
+          dispatch(setLastMessage(updatedLastMessage));
+        }
+      } catch (err) {
+        console.error('Refetch on lastMessage change failed:', err);
+      }
+    };
+
+    refetch();
+  }, [lastMessage?._id, active]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setActive(true);
+      return () => setActive(false);
+    }, [])
+  );
 
   const onSend = useCallback(
     async (newMessages: any = []) => {
-      const msg = newMessages[0];
-      const messageData = {
-        roomId,
-        sender: msg.user._id,
-        text: msg.text,
-        createdAt: msg.createdAt,
-        files: msg.files || [],
-      };
-
-      const result = await dispatch(createMsg(messageData));
-      if (createMsg.fulfilled.match(result)) {
+      const writes = newMessages.map((msg: any) => {
+        const messageData = { ...msg, roomId };
+        dispatch(createMsg(messageData));
+        const arr: any = {
+          userId: userB._id,
+          message: msg.text,
+        };
+        // sendNotifications(arr);
+      });
+      const lastMessage =
+        newMessages.length > 0 ? newMessages[newMessages.length - 1] : null;
+      if (lastMessage) {
+        const data: any = { id: roomId, lastMessage };
+        writes.push(dispatch(updateConversation(data)));
       }
+      writes.push(dispatch(retrieveMsg({ roomId, page: 1 })));
+      await Promise.all(writes);
     },
     [roomId, dispatch]
   );
@@ -110,7 +233,6 @@ const ChatScreen = ({ route }: { route: any }) => {
   const formattedMessages = messages
     .filter((m) => m && typeof m === 'object')
     .slice()
-    .reverse()
     .map((msg) => {
       const { photo, audio, video, _id, text, createdAt, user } = msg;
 
@@ -131,43 +253,98 @@ const ChatScreen = ({ route }: { route: any }) => {
 
   const renderMessage = (props: any) => {
     const { currentMessage } = props;
+    const isSender = currentMessage.user._id === senderUser._id;
+    const alignStyle = isSender ? styles.rightMessage : styles.leftMessage;
+
+    const renderText = () => {
+      if (currentMessage.text) {
+        return <Text style={alignStyle}>{currentMessage.text}</Text>;
+      }
+      return (
+        <Text
+          style={[
+            alignStyle,
+            {
+              fontSize: 12,
+              marginTop: 4,
+              alignSelf: 'flex-end',
+            },
+          ]}
+        >
+          {formatTimestamp(currentMessage.createdAt)}
+        </Text>
+      );
+    };
 
     if (currentMessage.audio) {
       return (
-        <View style={{ padding: 10, maxWidth: 250 }}>
-          {/* <AudioPlayer uri={currentMessage.audio} /> */}
-          <IconButton
+        <View style={[alignStyle, { padding: 10, maxWidth: 250 }]}>
+          <AudioPlayer uri={currentMessage.audio.url} />
+          {/* <IconButton
             icon='play'
             onPress={async () => {
               try {
                 const { sound } = await Audio.Sound.createAsync({
-                  uri: currentMessage.audio,
+                  uri: currentMessage.audio.url,
                 });
                 await sound.playAsync();
               } catch (err) {
                 console.error('Failed to play audio:', err);
               }
             }}
-          />
+          /> */}
+          {renderText()}
         </View>
       );
     }
 
-    if (currentMessage.video) {
+    if (Array.isArray(currentMessage.video)) {
+      const videoArray = Array.isArray(currentMessage.video)
+        ? currentMessage.video
+        : currentMessage.video
+        ? [currentMessage.video]
+        : [];
       return (
-        <View style={{ padding: 10, maxWidth: 300 }}>
-          {currentMessage.video?.map((uri: IPhoto | any, index: any) => (
+        <View style={[alignStyle, { padding: 10, maxWidth: 300 }]}>
+          {videoArray.map((uri: IPhoto | any, index: any) => (
             <Video
-              key={uri._id}
+              key={uri._id || index}
               source={{ uri: uri.url }}
               rate={1.0}
               volume={1.0}
               isMuted={false}
-              // resizeMode='contain'
               useNativeControls
               style={{ width: 250, height: 150, borderRadius: 10 }}
             />
           ))}
+          {renderText()}
+        </View>
+      );
+    }
+
+    if (currentMessage.image || currentMessage.photo) {
+      const photoList = Array.isArray(
+        currentMessage.image || currentMessage.photo
+      )
+        ? currentMessage.image || currentMessage.photo
+        : [currentMessage.image || currentMessage.photo];
+
+      return (
+        <View style={[alignStyle, { padding: 10 }]}>
+          {photoList.map((img: any, idx: any) => (
+            <Image
+              key={img._id || idx}
+              source={{ uri: img.url || img.uri }}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 12,
+                marginBottom: 8,
+              }}
+              resizeMode='cover'
+            />
+          ))}
+          {renderText()}
         </View>
       );
     }
@@ -177,6 +354,7 @@ const ChatScreen = ({ route }: { route: any }) => {
   };
 
   const handleLongPress = (context: any, message: any) => {
+    if (Platform.OS !== 'ios') return;
     const options = ['Edit', 'Delete', 'Forward', 'Cancel'];
     const cancelButtonIndex = 4;
 
@@ -237,31 +415,6 @@ const ChatScreen = ({ route }: { route: any }) => {
       setPendingText('');
       setPreviewVisible(true);
     }
-    // if (file) {
-    //   const fileType = file.type?.split('/')[0]; // 'image', 'audio', or 'video'
-    //   const mediaKey =
-    //     fileType === 'image'
-    //       ? 'photo'
-    //       : fileType === 'audio'
-    //       ? 'audio'
-    //       : fileType === 'video'
-    //       ? 'video'
-    //       : null;
-
-    //   if (!mediaKey) {
-    //     console.warn('Unsupported media type');
-    //     return;
-    //   }
-
-    //   const messagePayload: any = {
-    //     roomId,
-    //     sender: currentUserId,
-    //     text: '',
-    //     [mediaKey]: [file],
-    //   };
-
-    //   dispatch(createMsg(messagePayload));
-    // }
   };
 
   const startRecording = async () => {
@@ -309,6 +462,7 @@ const ChatScreen = ({ route }: { route: any }) => {
       const uri = recordingRef.current.getURI();
 
       setRecording(null);
+      setAudioPreviewVisible(true);
       setRecordingUri(uri || null);
     } catch (err) {
       console.error('Failed to stop recording:', err);
@@ -317,7 +471,6 @@ const ChatScreen = ({ route }: { route: any }) => {
 
   const sendRecording = async () => {
     if (!recordingUri) return;
-
     const audioFile = {
       uri: recordingUri,
       name: `audio-${Date.now()}.m4a`,
@@ -344,202 +497,133 @@ const ChatScreen = ({ route }: { route: any }) => {
     clearInterval(recordingIntervalRef.current!);
   };
 
-  const renderCustomActions = (props: any) => (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Actions
-        {...props}
-        options={{
-          ['Send Media']: handleMediaPick,
-        }}
-        icon={() => <Ionicons name='attach' size={24} color='gray' />}
-      />
+  const renderFooter = () => {
+    if (!sendingMedia) return null;
 
-      <IconButton
-        icon={recording ? 'stop' : 'microphone'}
-        onPress={recording ? stopRecording : startRecording}
-        size={24}
-      />
-    </View>
+    return (
+      <View style={{ padding: 10, alignItems: 'center' }}>
+        <ActivityIndicator size='small' />
+        <Text style={{ fontSize: 12, marginTop: 4 }}>Sending media...</Text>
+      </View>
+    );
+  };
+
+  const renderCustomActions = (props: any) => (
+    <CustomActions
+      {...props}
+      recording={recording}
+      onMediaPick={handleMediaPick}
+      onStartRecording={startRecording}
+      onStopRecording={stopRecording}
+    />
   );
 
   const loadEarlierMessages = async () => {
     if (!hasMore) return;
     setIsLoadingEarlier(true);
-    await dispatch(retrieveMsg({ roomId, page: page + 1 }));
+    await dispatch(retrieveMsg({ roomId, page: localPage + 1 }));
     setIsLoadingEarlier(false);
     setTimeout(() => {
-      if (chatRef.current?._messageContainerRef?.scrollToEnd) {
-        chatRef.current._messageContainerRef.scrollToEnd({ animated: true });
+      if (flatListRef.current?.current?._messageContainerRef?.scrollToEnd) {
+        flatListRef.current?.current._messageContainerRef.scrollToEnd({
+          animated: true,
+        });
       }
     }, 300);
   };
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  const hideMediaPreview = () => setPreviewVisible(false);
+
   return (
-    <View style={styles.container}>
-      <GiftedChat
-        ref={chatRef}
-        messages={formattedMessages}
-        onSend={(msgs) => onSend(msgs)}
-        user={senderUser}
-        loadEarlier={hasMore}
-        alwaysShowSend
-        renderBubble={renderBubble}
-        renderInputToolbar={renderInputToolbar}
-        onLoadEarlier={loadEarlierMessages}
-        listViewProps={{
-          ref: flatListRef,
-          onContentSizeChange: (w: any, h: any) => {
-            if (scrollOffsetRef.current !== null && flatListRef.current) {
-              flatListRef.current.scrollToOffset({
-                offset: h - scrollOffsetRef.current,
-                animated: false,
-              });
-            }
-          },
-          onScroll: handleScroll,
-          scrollEventThrottle: 16,
-        }}
-        isLoadingEarlier={isLoadingEarlier}
-        renderActions={renderCustomActions}
-        renderMessage={renderMessage}
-        onLongPress={(context, message) => handleLongPress(context, message)}
-        renderAvatar={null}
-        disableComposer={!!recording}
-        renderSend={renderSend}
-      />
-      {showScrollToBottom && (
-        <IconButton
-          icon='arrow-down'
-          size={28}
-          style={{
-            position: 'absolute',
-            right: 16,
-            bottom: 36,
-            alignItems: 'center',
-            backgroundColor: MD3Colors.primary40,
-            elevation: 4,
-            borderRadius: 24,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 3,
-          }}
-          onPress={() => {
-            if (chatRef.current?._messageContainerRef?.scrollToEnd) {
-              chatRef.current._messageContainerRef.scrollToEnd({
-                animated: true,
-              });
-            }
-          }}
-        />
-      )}
-
-      <Modal visible={previewVisible} transparent animationType='slide'>
+    <>
+      {initialLoading ? (
         <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            justifyContent: 'center',
-            padding: 20,
-          }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          <View
-            style={{ backgroundColor: 'white', borderRadius: 16, padding: 20 }}
+          <ActivityIndicator size='large' />
+        </View>
+      ) : (
+        <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 90}
+            style={{ flex: 1 }}
           >
-            {pendingMedia?.uri && (
-              <Image
-                source={{ uri: pendingMedia.uri }}
-                style={{
-                  width: '100%',
-                  height: 200,
-                  borderRadius: 12,
-                  marginBottom: 10,
+            <View style={{ flex: 1 }}>
+              <GiftedChat
+                messages={formattedMessages}
+                textInputProps={{ multiline: true }}
+                onSend={(msgs) => onSend(msgs)}
+                user={senderUser}
+                loadEarlier={hasMore}
+                alwaysShowSend
+                renderBubble={renderBubble}
+                renderInputToolbar={(props) =>
+                  recording ? null : renderInputToolbar(props)
+                }
+                onLoadEarlier={loadEarlierMessages}
+                listViewProps={{
+                  ref: flatListRef,
+                  onContentSizeChange: (w: any, h: any) => {
+                    if (
+                      scrollOffsetRef.current !== null &&
+                      flatListRef.current
+                    ) {
+                      flatListRef.current.scrollToOffset({
+                        offset: h - scrollOffsetRef.current,
+                        animated: false,
+                      });
+                    }
+                  },
+                  onLayout: (event: any) => {
+                    listHeightRef.current = event.nativeEvent.layout.height;
+                  },
+                  onScroll: handleScroll,
+                  scrollEventThrottle: 16,
+                  keyboardShouldPersistTaps: 'handled', // <- Important for dismissing keyboard
                 }}
-              />
-            )}
-            <TextInput
-              value={pendingText}
-              onChangeText={setPendingText}
-              placeholder='Add a message...'
-              style={{
-                borderColor: 'lightgray',
-                borderWidth: 1,
-                borderRadius: 8,
-                padding: 10,
-                marginBottom: 10,
-              }}
-            />
-            <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
-            >
-              <Button title='Cancel' onPress={() => setPreviewVisible(false)} />
-              <Button
-                title='Send'
-                onPress={() => {
-                  const fileType = pendingMedia.type?.split('/')[0];
-                  const mediaKey =
-                    fileType === 'image'
-                      ? 'photo'
-                      : fileType === 'audio'
-                      ? 'audio'
-                      : fileType === 'video'
-                      ? 'video'
-                      : null;
-
-                  if (!mediaKey) {
-                    console.warn('Unsupported media type');
-                    return;
-                  }
-
-                  const messagePayload = {
-                    roomId,
-                    sender: senderUser._id,
-                    text: pendingText,
-                    [mediaKey]: [pendingMedia],
-                  };
-
-                  dispatch(createMsg(messagePayload));
-                  setPreviewVisible(false);
-                }}
+                isLoadingEarlier={isLoadingEarlier}
+                renderActions={renderCustomActions}
+                renderMessage={renderMessage}
+                onLongPress={(context, message) =>
+                  handleLongPress(context, message)
+                }
+                renderAvatar={null}
+                disableComposer={!!recording}
+                renderSend={renderSend}
+                renderFooter={renderFooter}
               />
             </View>
-          </View>
-        </View>
-      </Modal>
-      {(recording || recordingUri) && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            padding: 10,
-            backgroundColor: '#f0f0f0',
-            borderTopWidth: 1,
-            borderColor: '#ccc',
-          }}
-        >
-          <Text style={{ flex: 1 }}>
-            {recording
-              ? `Recording... ${formatDuration(recordingDuration)}`
-              : `Recorded: ${formatDuration(recordingDuration)}`}
-          </Text>
-
-          {recording ? (
-            <IconButton icon='stop' onPress={stopRecording} />
-          ) : (
-            <>
-              <IconButton icon='send' onPress={sendRecording} />
-              <IconButton icon='trash' onPress={cancelRecording} />
-            </>
+          </KeyboardAvoidingView>
+          {(recording || recordingUri) && (
+            <AudioRecorder
+              duration={recordingDuration}
+              stopRecording={stopRecording}
+              cancelRecording={cancelRecording}
+              sendRecording={sendRecording}
+              recording={recording}
+              senderUser={senderUser}
+              roomId={roomId}
+            />
           )}
-        </View>
+          <MediaPreviewModal
+            pendingText={pendingText}
+            setPendingText={setPendingText}
+            visible={previewVisible}
+            media={pendingMedia}
+            onClose={hideMediaPreview}
+            roomId={roomId}
+            senderUser={senderUser}
+          />
+        </SafeAreaView>
       )}
-      {Platform.OS === 'android' && (
-        <KeyboardAvoidingView
-          behavior={Platform.OS !== 'android' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS !== 'android' ? -64 : 0}
-        />
-      )}
-    </View>
+    </>
   );
 };
 
@@ -547,6 +631,117 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  rightMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: MD3Colors.primary40,
+    padding: 8,
+    borderRadius: 10,
+    margin: 4,
+    maxWidth: '80%',
+    color: MD2Colors.grey200,
+  },
+  leftMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: MD3Colors.primary70,
+    padding: 8,
+    borderRadius: 10,
+    margin: 4,
+    maxWidth: '80%',
+    color: MD2Colors.white,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+  },
+  caption: {
+    marginTop: 4,
+    fontSize: 14,
+    color: '#333',
+  },
 });
 
 export default ChatScreen;
+
+//   const fetchData = useCallback(async () => {
+//     try {
+//       if (firstLoad) {
+//         setInitialLoading(true);
+//       }
+
+//       // dispatch(clearMessages());
+//       const resp = await dispatch(retrieveMsg({ roomId, page: 1 }));
+//       const newMessages = resp?.payload?.messages || [];
+
+//       const newLastMessage =
+//         newMessages.length > 0 ? newMessages[newMessages.length - 1] : null;
+
+//       if (newLastMessage && newLastMessage._id !== lastMessageIdRef.current) {
+//         lastMessageIdRef.current = newLastMessage._id;
+
+//         const data = { id: roomId, lastMessage: newLastMessage };
+//         dispatch(updateConversation(data));
+//         dispatch(updateMsg(roomId));
+//         dispatch(setLastMessage(newLastMessage));
+//         dispatch(replaceMessages(newMessages));
+//       } else if (firstLoad) {
+//         dispatch(clearMessages());
+//         dispatch(replaceMessages(newMessages));
+//       } else {
+//         const newMessagesSet = new Set(newMessages.map((msg: any) => msg._id));
+//         const currentMessagesSet = new Set(messages.map((msg) => msg._id));
+
+//         if (
+//           newMessagesSet.size !== currentMessagesSet.size ||
+//           [...newMessagesSet].some((id: any) => !currentMessagesSet.has(id))
+//         ) {
+//           dispatch(replaceMessages(newMessages));
+//         }
+//       }
+//     } catch (error) {
+//       console.error('Failed to retrieve messages:', error);
+//     } finally {
+//       if (firstLoad) {
+//         setInitialLoading(false);
+//         setFirstLoad(false);
+//       }
+//     }
+//   }, [dispatch, roomId, messages, firstLoad]);
+
+//   const debouncedFetchData = useMemo(
+//     () => debounce(fetchData, 2000),
+//     [fetchData]
+//   );
+
+//   useFocusEffect(
+//     useCallback(() => {
+//       if (!active) return;
+
+//       debouncedFetchData();
+
+//       const intervalId = setInterval(debouncedFetchData, 5000);
+//       return () => {
+//         clearInterval(intervalId);
+//       };
+//     }, [roomId, active])
+//   );
+
+//   useEffect(() => {
+//     if (!lastMessage) return;
+
+//     debouncedFetchData();
+//   }, [lastMessage?._id]);
+
+//   const loadEarlierMessages = async () => {
+//     if (!hasMore) return;
+//     setIsLoadingEarlier(true);
+//     await dispatch(retrieveMsg({ roomId, page: page + 1 }));
+//     setIsLoadingEarlier(false);
+//     setTimeout(() => {
+//       if (flatListRef.current?.current?._messageContainerRef?.scrollToEnd) {
+//         flatListRef.current?.current._messageContainerRef.scrollToEnd({
+//           animated: true,
+//         });
+//       }
+//     }, 300);
+//   };

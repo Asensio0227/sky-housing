@@ -1,4 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -31,6 +33,8 @@ import {
 import { IPhoto, UIEstateDocument } from '../features/estate/types';
 import UserProfile from './custom/UserProfile';
 
+dayjs.extend(relativeTime);
+
 const width = Dimensions.get('screen').width;
 
 const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
@@ -43,7 +47,10 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
   const [visible, setVisible] = useState(false);
   const [sending, setSending] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
-  const currUserAd = user?.contact_details.email === currentUser.email;
+  const currUserAd =
+    user?.contact_details?.email && currentUser?.email
+      ? user.contact_details.email === currentUser.email
+      : false;
   const images: { id: string; uri: string } | any = photo.map(
     (img: IPhoto) => ({
       id: img.id,
@@ -85,24 +92,42 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
   const enquire = async () => {
     setSending(true);
     try {
-      const userB = user && {
-        email: user && user.contact_details.email,
+      if (!user || !currentUser) {
+        console.error('User or currentUser is undefined');
+        ToastAndroid.show('Failed to send message: Missing user data', 2000);
+        setSending(false);
+        return;
+      }
+      const userB = {
+        email: user.contact_details?.email,
         avatar: user.avatar,
-        _id: user && user._id,
+        _id: user._id,
         username: user.username,
+        lastSeen:
+          user.lastSeen ||
+          `Last seen ${dayjs(new Date().toISOString()).fromNow()}`,
       };
-      const userA = currentUser && {
+
+      const userA = {
         email: currentUser.email,
         avatar: currentUser.avatar,
-        _id: currentUser && currentUser.userId,
+        _id: currentUser.userId,
         username: currentUser.username,
+        lastSeen:
+          currentUser.lastSeen ||
+          `Last seen ${dayjs(new Date().toISOString()).fromNow()}`,
       };
       const participantsArray = [userA.email, userB.email];
       const participants = [userA, userB];
       const data = { participants, participantsArray };
       const room = await dispatch(createConversation(data));
       const item = room.payload.newRoom || room.payload.existingRoom;
-      const msg = { text: 'hello, is this still available?', roomId: item._id };
+      const roomId = item && item._id;
+      const msg = {
+        text: 'hello, is this still available?',
+        roomId,
+        photo: images,
+      };
       const result = await dispatch(createMsg(msg));
       const id = result.meta.arg.roomId;
       const lastMessage = { ...result.payload.newMsg };

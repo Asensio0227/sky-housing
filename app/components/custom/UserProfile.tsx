@@ -21,7 +21,8 @@ const UserProfile: React.FC<{
   rating?: number | any;
   items?: any;
 }> = ({ user, style, rating, items }) => {
-  const time = dayjs().add(user.updatedAt, 'day').calendar();
+  const date = user.lastSeen;
+  const time = `Last seen ${dayjs(date).fromNow()}`;
   const [visible, setVisible] = useState(false);
   const router: any = useRoute();
   const navigation: any = useNavigation();

@@ -1,12 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import {
-  Avatar,
-  Bubble,
-  InputToolbar,
-  Message,
-} from 'react-native-gifted-chat';
+import { Avatar, Bubble, InputToolbar } from 'react-native-gifted-chat';
 import { MD2Colors, MD3Colors } from 'react-native-paper';
 
 export const renderBubble = (props: any) => (
@@ -14,20 +9,13 @@ export const renderBubble = (props: any) => (
     {...props}
     textStyle={{ right: { color: MD2Colors.grey200 } }}
     wrapperStyle={{
-      left: { backgroundColor: MD2Colors.white },
+      left: { backgroundColor: MD3Colors.primary70 },
       right: { backgroundColor: MD3Colors.primary40 },
     }}
-    // renderCustomView={renderCustomView}
   />
 );
 
 export const renderAvatar = (props: any) => <Avatar {...props} />;
-
-export const renderCustomView = (props: any) => (
-  <>
-    {/* {props.currentMessage.isRead?(<Icon name="eye" size={30} color={MD2Colors.grey400} />):(<Icon name="eye-off" size={30} color={MD3Colors.primary40}/>)} */}
-  </>
-);
 
 // export const renderCustomActions = (props) => {
 //   const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -95,24 +83,6 @@ export const renderInputToolbar = (props: any) => (
       borderRadius: 20,
       paddingTop: 5,
     }}
-  />
-);
-
-export const renderMessage = (props: any) => (
-  <Message
-    {...props}
-    textStyle={{ right: { color: MD3Colors.primary50 } }}
-    wrapperStyle={{
-      left: { backgroundColor: MD3Colors.primary100 },
-      right: { backgroundColor: MD3Colors.primary20 },
-    }}
-    renderUser={{
-      _id: props.currentMessage.user._id,
-      name:
-        `${props.currentMessage?.user.username}` ||
-        props.currentMessage?.user.fName,
-    }}
-    user={props.user}
   />
 );
 

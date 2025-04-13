@@ -62,7 +62,6 @@ const Home = () => {
         }
       })();
     }, [dispatch])
-    // }, [search, category, page, isLoading])
   );
 
   if (houses.length === 0) {
@@ -90,35 +89,49 @@ const Home = () => {
       <View style={{ flex: 1 }}>
         <FlashList
           data={houses}
-          ListHeaderComponent={
-            featuredAds && (
-              <>
-                <Carousel
-                  ref={ref}
-                  autoPlay
-                  width={width}
-                  height={width / 2}
-                  data={featuredAds}
-                  scrollAnimationDuration={5000}
-                  style={{ marginTop: 2 }}
-                  onProgressChange={progress}
-                  renderItem={({ item }) => (
-                    <Estate key={item._id} items={item} />
-                  )}
-                />
-                <Pagination.Basic
-                  progress={progress}
-                  data={featuredAds}
-                  dotStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.2)',
-                    borderRadius: 50,
-                  }}
-                  containerStyle={{ gap: 5, marginTop: 10 }}
-                  onPress={onPressPagination}
-                />
-              </>
-            )
-          }
+          ListHeaderComponent={() => {
+            if (isLoading && (!featuredAds || featuredAds.length === 0)) {
+              return (
+                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <ActivityIndicator size='small' />
+                  <Text style={{ marginTop: 8, color: '#999' }}>
+                    Loading new ads...
+                  </Text>
+                </View>
+              );
+            }
+
+            if (Array.isArray(featuredAds) && featuredAds.length > 0) {
+              return (
+                <>
+                  <Carousel
+                    ref={ref}
+                    autoPlay
+                    width={width}
+                    height={width / 2}
+                    data={featuredAds}
+                    scrollAnimationDuration={5000}
+                    style={{ marginTop: 2 }}
+                    onProgressChange={progress}
+                    renderItem={({ item }) => (
+                      <Estate key={item._id} items={item} />
+                    )}
+                  />
+                  <Pagination.Basic
+                    progress={progress}
+                    data={featuredAds}
+                    dotStyle={{
+                      backgroundColor: 'rgba(0,0,0,0.2)',
+                      borderRadius: 50,
+                    }}
+                    containerStyle={{ gap: 5, marginTop: 10 }}
+                    onPress={onPressPagination}
+                  />
+                </>
+              );
+            }
+            return null;
+          }}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <EstateContainer items={item} />}
           estimatedItemSize={200}

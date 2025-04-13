@@ -34,9 +34,11 @@ const Welcome = () => {
         <AppButton
           style={{ color: 'white' }}
           title='Sign in'
+          mode='outlined'
           onPress={() => navigation.navigate('sign-in')}
         />
         <AppButton
+          mode='outlined'
           title='Sign up'
           onPress={() => navigation.navigate('sign-up')}
         />

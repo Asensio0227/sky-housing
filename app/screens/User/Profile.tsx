@@ -24,13 +24,23 @@ const Profile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
+      let isActive = true;
+
+      const fetchCurrentUser = async () => {
         try {
-          await dispatch(currentUser());
-        } catch (error: any) {
-          console.log(`Error fetching current user : ${error}`);
+          if (isActive) {
+            await dispatch(currentUser());
+          }
+        } catch (error) {
+          console.log('Error fetching current user:', error);
         }
-      })();
+      };
+
+      fetchCurrentUser();
+
+      return () => {
+        isActive = false;
+      };
     }, [dispatch])
   );
 

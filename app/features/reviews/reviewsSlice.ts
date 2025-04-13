@@ -24,12 +24,13 @@ const initialState: Reviews = {
 // create review
 export const leaveReview = createAsyncThunk(
   'review/create',
-  async (data, _thunkApi) => {
+  async (data, thunkApi: any) => {
     try {
-      const response = await customFetch.post('review', data);
-      return response.data;
+      const { houses } = thunkApi.getState().ESTATE;
+      const { data: reviews } = await customFetch.post('review', data);
+      return { reviews, houses };
     } catch (error: any) {
-      return _thunkApi.rejectWithValue('Error creating review' + error);
+      return thunkApi.rejectWithValue('Error creating review' + error);
     }
   }
 );

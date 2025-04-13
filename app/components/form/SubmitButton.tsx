@@ -10,7 +10,7 @@ const SubmitButton: React.FC<{
   style?: any;
   width?: any;
 }> = ({
-  mode = 'contained',
+  mode = 'contained-tonal',
   icon = 'account',
   title = 'Submit',
   style,

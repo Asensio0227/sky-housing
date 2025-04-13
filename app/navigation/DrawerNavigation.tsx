@@ -1,8 +1,8 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { MD2Colors, MD3Colors } from 'react-native-paper';
+import { MD2Colors } from 'react-native-paper';
 import CustomDrawer from '../components/custom/CustomDrawer';
 import AccountNavigation from './AccountNavigation';
-import ConversationNavigator from './ConversactionNavigation';
+import ConversationNavigator from './ConversationNavigation';
 import MyListingNavigation from './ListingNavigation';
 import TabNavigation from './TabNavigation';
 

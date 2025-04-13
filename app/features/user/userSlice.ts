@@ -7,12 +7,12 @@ interface userState {
   isLoading: boolean;
   users: UserDocument[];
   singleUser: UserDocument | null | any;
-  page: Number;
+  page: number;
   search: string;
   sort: string;
   sortOption: sortOptions[];
-  totalUsers: Number;
-  numOfPages: Number;
+  totalUsers: number;
+  numOfPages: number;
 }
 
 enum sortOptions {
@@ -36,8 +36,8 @@ const initialState = {
 
 export const retrieveAllUsers = createAsyncThunk(
   'users/all',
-  async (_, thunkApi: any) => {
-    const { page, search, sort } = thunkApi.getState().user;
+  async ({ page }: any, thunkApi: any) => {
+    const { search, sort } = thunkApi.getState().user;
     const params = new URLSearchParams({
       page: String(page),
       sort,
@@ -90,10 +90,10 @@ const userSlice = createSlice({
       })
       .addCase(retrieveAllUsers.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        const { users, numOfPages, totalUsers } = action.payload;
-        state.users = users;
-        state.numOfPages = numOfPages;
-        state.totalUsers = totalUsers;
+        // const { users, numOfPages, totalUsers } = action.payload;
+        // state.users = users;
+        // state.numOfPages = numOfPages;
+        // state.totalUsers = totalUsers;
         console.log(`====fulfilled all====`);
         console.log(action);
         console.log(`====fulfilled all====`);

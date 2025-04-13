@@ -2,21 +2,6 @@
 
 // @refresh reset
 
-import {
-  OpenSans_300Light,
-  OpenSans_300Light_Italic,
-  OpenSans_400Regular,
-  OpenSans_400Regular_Italic,
-  OpenSans_500Medium,
-  OpenSans_500Medium_Italic,
-  OpenSans_600SemiBold,
-  OpenSans_600SemiBold_Italic,
-  OpenSans_700Bold,
-  OpenSans_700Bold_Italic,
-  OpenSans_800ExtraBold,
-  OpenSans_800ExtraBold_Italic,
-  useFonts,
-} from '@expo-google-fonts/open-sans';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { NavigationContainer } from '@react-navigation/native';
@@ -50,43 +35,26 @@ SplashScreen.setOptions({
 //   debug: true,
 // });
 import { LogBox } from 'react-native';
+import useAppStateListener from './app/hooks/useAppState.Listener';
 
 LogBox.ignoreLogs([
   'Warning: Avatar: Support for defaultProps will be removed',
 ]);
 
 function App() {
+  useAppStateListener();
   const networkState = Network.useNetworkState();
   const [appIsReady, setAppIsReady] = useState(false);
   const { expoPushToken, notification, channels } = useNotifications();
-  let [fontsLoaded] = useFonts({
-    OpenSans_300Light,
-    OpenSans_400Regular,
-    OpenSans_500Medium,
-    OpenSans_600SemiBold,
-    OpenSans_700Bold,
-    OpenSans_800ExtraBold,
-    OpenSans_300Light_Italic,
-    OpenSans_400Regular_Italic,
-    OpenSans_500Medium_Italic,
-    OpenSans_600SemiBold_Italic,
-    OpenSans_700Bold_Italic,
-    OpenSans_800ExtraBold_Italic,
-  });
   const { user } = useSelector((store: RootState) => store.AUTH);
 
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
         await Font.loadAsync(Entypo.font);
-        // Artificially delay for two seconds to simulate a slow loading
-        // experience. Remove this if you copy and paste the code!
-        await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (e) {
         console.warn(e);
       } finally {
-        // Tell the application to render
         setAppIsReady(true);
       }
     }
@@ -104,10 +72,6 @@ function App() {
   if (!appIsReady) {
     return null;
   }
-
-  // if (!fontsLoaded) {
-  //   return <AppLoading />;
-  // }
 
   return (
     <Screen onLayout={onLayoutRootView}>

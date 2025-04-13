@@ -3,6 +3,7 @@ export interface Room {
   participantsArray: string[];
   participants: Participants[];
   userId: string;
+  lastMessage: null;
   createdAt: string | Date;
   updatedAt: string | Date;
 }

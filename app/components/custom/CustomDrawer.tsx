@@ -1,4 +1,5 @@
 import {
+  DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer';
@@ -12,7 +13,7 @@ import { RootState } from '../../../store';
 import { removeUser, signOutUser } from '../../features/auth/authSlice';
 import Loading from './Loading';
 
-const CustomDrawer: React.FC = (props: any) => {
+const CustomDrawer: React.FC<DrawerContentComponentProps> = (props: any) => {
   const navigation: any = useNavigation();
   const { user, isLoading } = useSelector((store: RootState) => store.AUTH);
   const dispatch: any = useDispatch();

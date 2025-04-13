@@ -16,6 +16,14 @@ export function formatDate(rawDate: Date) {
   return `${year}-${month}-${day}`;
 }
 
+export const formatTimestamp = (dateString: string | Date) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 export const customData = (userData: UserDocument | any, profile?: boolean) => {
   const {
     city,
@@ -101,32 +109,36 @@ export const customD = (ads: UIEstateDocument | any) => {
 export const customMsg = (data: any) => {
   const formData: any = new FormData();
 
-  // Append media types individually
   if (data.photo?.length) {
-    formData.append('media', {
-      uri: data.photo[0].uri,
-      name: data.photo[0].fileName || 'photo.jpg',
-      type: data.photo[0].type || 'image/jpeg',
+    data.photo.forEach((file: any) => {
+      formData.append('media', {
+        uri: file.uri,
+        name: file.fileName || 'photo.jpg',
+        type: file.type || 'image/jpeg',
+      });
     });
   }
 
   if (data.audio?.length) {
-    formData.append('media', {
-      uri: data.audio[0].uri,
-      name: data.audio[0].fileName || 'audio.m4a',
-      type: data.audio[0].type || 'audio/m4a',
+    data.audio.forEach((file: any) => {
+      formData.append('media', {
+        uri: file.uri,
+        name: file.fileName || 'audio.m4a',
+        type: file.type || 'audio/m4a',
+      });
     });
   }
 
   if (data.video?.length) {
-    formData.append('media', {
-      uri: data.video[0].uri,
-      name: data.video[0].fileName || 'video.mp4',
-      type: data.video[0].type || 'video/mp4',
+    data.video.forEach((file: any) => {
+      formData.append('media', {
+        uri: file.uri,
+        name: file.fileName || 'video.mp4',
+        type: file.type || 'video/mp4',
+      });
     });
   }
 
-  // Explicitly append text and roomId
   if (data.text) {
     formData.append('text', data.text);
   }
@@ -135,7 +147,6 @@ export const customMsg = (data: any) => {
     formData.append('roomId', data.roomId);
   }
 
-  // Optionally append any generic files
   if (Array.isArray(data.files)) {
     data.files.forEach((file: any) => {
       formData.append('files', {
@@ -166,21 +177,61 @@ export const pickMedia = async () => {
   }
 
   const result = await ImagePicker.launchImageLibraryAsync({
-    // mediaTypes: ImagePicker.All,
     allowsEditing: false,
     quality: 1,
   });
 
-  if (!result.canceled) {
+  if (!result.canceled && result.assets?.length > 0) {
     const asset = result.assets[0];
+
+    if (!asset.uri) {
+      console.error('No valid URI found for the selected asset.');
+      return null;
+    }
 
     return {
       uri: asset.uri,
       name: asset.fileName || 'file.jpg',
-      type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg', // adjust as needed
+      type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg',
     };
   }
+
+  return null;
 };
+
+export const formatDuration = (millis: number) => {
+  const totalSeconds = Math.floor(millis / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${seconds
+    .toString()
+    .padStart(2, '0')}`;
+};
+
+// export const pickMedia = async () => {
+//   const permissionResult =
+//     await ImagePicker.requestMediaLibraryPermissionsAsync();
+//   if (!permissionResult.granted) {
+//     alert('Permission to access media is required!');
+//     return;
+//   }
+
+//   const result = await ImagePicker.launchImageLibraryAsync({
+//     // mediaTypes: ImagePicker.All,
+//     allowsEditing: false,
+//     quality: 1,
+//   });
+
+//   if (!result.canceled) {
+//     const asset = result.assets[0];
+
+//     return {
+//       uri: asset.uri,
+//       name: asset.fileName || 'file.jpg',
+//       type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg', // adjust as needed
+//     };
+//   }
+// };
 
 // export const resizeImage = async (uriArr: IPhoto[], width: number) => {
 //   return Promise.all(

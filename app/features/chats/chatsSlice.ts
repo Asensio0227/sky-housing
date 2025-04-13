@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
 import { ToastAndroid } from 'react-native';
 import { UserDocument } from '../../components/form/FormInput';
@@ -17,11 +17,13 @@ interface roomState {
   page: number;
   unreadCount: number;
   hasMore: boolean;
+  lastMessage: any | null;
 }
 
 const initialState: roomState = {
   conversations: [],
   hasMore: true,
+
   filteredConversations: [],
   conversationsWithNewMessages: [],
   selectedRoom: null,
@@ -30,6 +32,7 @@ const initialState: roomState = {
   isLoading: true,
   page: 1,
   unreadCount: 0,
+  lastMessage: null,
 } satisfies roomState as roomState;
 
 // =========ROOM=======
@@ -68,7 +71,7 @@ export const updateConversation = createAsyncThunk(
   'room/update',
   async (data: any, thunkApi: any) => {
     try {
-      const user = thunkApi.getState.Auth.user;
+      const { user } = thunkApi.getState().AUTH;
       const { id, lastMessage } = data;
       const { data: resp } = await customFetch.put(`room/${id}`, {
         lastMessage,
@@ -109,13 +112,7 @@ export const createMsg = createAsyncThunk(
   'message/create',
   async (data: any, thunkApi: any) => {
     try {
-      console.log(`==== data create msg====`);
-      console.log(data);
-      console.log(`==== data create msg====`);
       const formData = customMsg(data);
-      console.log(`===formData===`);
-      console.log(formData);
-      console.log(`===formData===`);
       const response = await customFetch.post('message', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -143,7 +140,6 @@ export const retrieveMsg = createAsyncThunk(
           `🔁 Retrieving messages for roomId: ${roomId}, page: ${page}`
         );
       }
-
       const params = new URLSearchParams({ page: String(page) });
       const url = `message/${roomId}?${params.toString()}`;
 
@@ -153,7 +149,7 @@ export const retrieveMsg = createAsyncThunk(
     } catch (err: unknown | any) {
       const error = err as AxiosError;
       const message =
-        error.response?.data?.message ||
+        (error.response?.data as { message?: string })?.message ||
         error.message ||
         'An unknown error occurred while retrieving messages';
 
@@ -164,9 +160,9 @@ export const retrieveMsg = createAsyncThunk(
 // update msg
 export const updateMsg = createAsyncThunk(
   'message/update',
-  async (data: any, thunkApi: any) => {
+  async (roomId: string, thunkApi: any) => {
     try {
-      const response = await customFetch.put(`message/${data._id}`, data);
+      const response = await customFetch.put(`message/${roomId}`);
       return response.data;
     } catch (error: any) {
       return thunkApi.rejectWithValue(`Error updating msg ${error}`);
@@ -196,9 +192,30 @@ const chatsSlice = createSlice({
       state.page = 1;
       state.hasMore = true;
     },
+    clearMessages: (state) => {
+      return { ...state };
+    },
+    setLastMessage(state, action: PayloadAction<any>) {
+      state.lastMessage = action.payload;
+    },
+    handleChangeChat: (
+      state,
+      action: PayloadAction<{ name: string; value: string }>
+    ) => {
+      const { name, value } = action.payload;
+      (state as any)[name] = value;
+    },
+    replaceMessages(state, action: PayloadAction<any[]>) {
+      const newMessages = action.payload;
+      const filteredMessages = newMessages.filter(
+        (msg) =>
+          !state.messages.some((existingMsg) => existingMsg._id === msg._id)
+      );
+
+      state.messages = [...state.messages, ...filteredMessages];
+    },
   },
   extraReducers(builder) {
-    // create conversation
     builder
       .addCase(createConversation.pending, (state) => {
         state.isLoading = true;
@@ -227,9 +244,6 @@ const chatsSlice = createSlice({
         state.conversations = state.conversations.map((conv: any) =>
           conv._id === room._id ? { ...conv, ...room } : conv
         );
-        console.log(`===fulfilled retrieve user rooms=-=`);
-        console.log(action);
-        console.log(`===fulfilled retrieve user rooms=-=`);
       })
       .addCase(createConversation.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -246,17 +260,11 @@ const chatsSlice = createSlice({
       })
       .addCase(retrieveUserConversation.fulfilled, (state, action: any) => {
         state.isLoading = false;
-
-        console.log(`===action===`);
-        console.log(action);
-        console.log(`===action===`);
         const {
           user,
           data: { rooms, page },
         } = action.payload;
-
         const email = user.email;
-
         const parsedChat =
           email &&
           rooms.map((doc: any) => ({
@@ -275,9 +283,6 @@ const chatsSlice = createSlice({
 
         state.page += 1;
         state.hasMore = newFiltered.length > 0;
-        console.log(`==== create room fulfilled===`);
-        console.log(action);
-        console.log(`==== create room fulfilled===`);
       })
       .addCase(retrieveUserConversation.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -286,9 +291,6 @@ const chatsSlice = createSlice({
           1000,
           0
         );
-        console.log(`===Error retrieving user's conversation rejected=== `);
-        console.log(action);
-        console.log(`===Error retrieving user's conversation rejected=== `);
       });
     // update room
     builder
@@ -297,7 +299,13 @@ const chatsSlice = createSlice({
       })
       .addCase(updateConversation.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        const updatedRoom = action.payload.rooms;
+        const updatedRoom = action.payload?.resp?.rooms;
+        if (!updatedRoom || !updatedRoom._id) {
+          console.warn(
+            'updateConversation.fulfilled: updatedRoom is undefined or missing _id'
+          );
+          return;
+        }
         state.conversations = state.conversations.map((conv: any) =>
           conv._id === updatedRoom._id ? { ...conv, ...updatedRoom } : conv
         );
@@ -307,7 +315,6 @@ const chatsSlice = createSlice({
       })
       .addCase(updateConversation.rejected, (state, action: any) => {
         state.isLoading = false;
-        console.error('Update failed:', action.payload);
       });
     // remove room
     builder
@@ -330,7 +337,6 @@ const chatsSlice = createSlice({
       })
       .addCase(removeRoom.rejected, (state, action) => {
         state.isLoading = false;
-        console.error('Remove failed:', action.payload);
       });
     // a room
     builder
@@ -343,7 +349,6 @@ const chatsSlice = createSlice({
       })
       .addCase(retrieveRoom.rejected, (state, action) => {
         state.isLoading = false;
-        console.error('Fetching single room failed:', action.payload);
       });
     // create msg
     builder
@@ -356,29 +361,32 @@ const chatsSlice = createSlice({
       })
       .addCase(createMsg.rejected, (state, action) => {
         state.isLoading = false;
-        console.error('Message creation failed:', action.payload);
       });
     // retrieve msg
     builder
       .addCase(retrieveMsg.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(retrieveMsg.fulfilled, (state, action) => {
+      .addCase(retrieveMsg.fulfilled, (state, action: any) => {
         state.isLoading = false;
         const { messages, page } = action.payload;
 
+        const uniqueMessages = messages.filter(
+          (newMsg: any) =>
+            !state.messages.some((msg: any) => msg._id === newMsg._id)
+        );
+
         if (page === 1) {
-          state.messages = messages;
+          state.messages = uniqueMessages;
         } else {
-          state.messages = [...state.messages, ...messages];
+          state.messages = [...state.messages, ...uniqueMessages];
         }
 
         state.page = page;
-        state.hasMore = messages.length > 0;
+        state.hasMore = uniqueMessages.length > 0;
       })
       .addCase(retrieveMsg.rejected, (state, action: any) => {
         state.isLoading = false;
-        console.error('Message retrieving failed:', action.payload);
       });
     // update room
     builder
@@ -411,10 +419,15 @@ const chatsSlice = createSlice({
       })
       .addCase(deleteMsg.rejected, (state, action) => {
         state.isLoading = false;
-        console.error('Failed to delete message:', action.payload);
       });
   },
 });
 
-export const { resetConversations } = chatsSlice.actions;
+export const {
+  resetConversations,
+  clearMessages,
+  setLastMessage,
+  replaceMessages,
+  handleChangeChat,
+} = chatsSlice.actions;
 export default chatsSlice.reducer;

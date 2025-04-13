@@ -10,10 +10,8 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Avatar, MD2Colors, MD3Colors, Text } from 'react-native-paper';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootChatsState } from '../../store';
+import { useDispatch } from 'react-redux';
 import { removeRoom, resetConversations } from '../features/chats/chatsSlice';
-import Loading from './custom/Loading';
 dayjs.extend(calendar);
 
 type ContactPersonProps = {
@@ -24,7 +22,7 @@ type ContactPersonProps = {
     avatar?: string;
   };
   style?: ViewStyle;
-  time?: Date | { createdAt?: string };
+  time?: any | { createdAt?: string };
   room?: { _id: string };
   image?: any;
 };
@@ -39,21 +37,18 @@ const ContactPerson: React.FC<ContactPersonProps> = ({
 }) => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
-  const { isLoading } = useSelector((store: RootChatsState) => store.Chats);
 
   const deleteChat = async () => {
     try {
-      const id = room?._id;
+      const id: any = room?._id;
       if (id) {
-        await dispatch(removeRoom(id));
+        await dispatch(removeRoom(id) as any);
         dispatch(resetConversations());
       }
     } catch (error) {
       console.log('Error deleting chat:', error);
     }
   };
-
-  if (isLoading) return <Loading />;
 
   return (
     <TouchableOpacity
@@ -104,7 +99,7 @@ export default ContactPerson;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: MD3Colors.primary10,
+    backgroundColor: MD3Colors.primary60,
     height: 80,
     padding: 5,
     borderRadius: 8,

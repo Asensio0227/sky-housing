@@ -1,22 +1,22 @@
 import { useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
-import calendar from 'dayjs/plugin/calendar';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Text } from 'react-native-paper';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
 
-dayjs.extend(calendar);
+dayjs.extend(relativeTime);
 
 const ChatHeader = () => {
-  const { user } = useSelector((store: RootState) => store.AUTH);
   const route: any = useRoute();
-  const room = route.params.room;
-  const params = room.participants;
-  const userB = params.filter((item: any) => item.id !== user.userId);
-  const { avatar, username, status, updatedAt } = userB[0];
-  const time = dayjs().add(updatedAt, 'day').calendar();
+  const { user: userB, room } = route.params;
+  const { avatar, username, status, lastSeen } = userB;
+
+  const renderStatus = () => {
+    if (status === 'online') return 'Online';
+    if (lastSeen) return `Last seen ${dayjs(lastSeen).fromNow()}`;
+    return 'Offline';
+  };
 
   return (
     <View style={styles.container}>
@@ -25,9 +25,7 @@ const ChatHeader = () => {
       </View>
       <View style={styles.section}>
         <Text style={styles.text}>{username}</Text>
-        <Text style={styles.status}>
-          {status === 'online' ? 'Online' : time}
-        </Text>
+        <Text style={styles.status}>{renderStatus()}</Text>
       </View>
     </View>
   );
