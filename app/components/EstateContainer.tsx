@@ -31,6 +31,8 @@ import {
   updateConversation,
 } from '../features/chats/chatsSlice';
 import { IPhoto, UIEstateDocument } from '../features/estate/types';
+import { sendNotifications } from '../features/notify/notifySlice';
+import { getUserId } from '../utils/globals';
 import UserProfile from './custom/UserProfile';
 
 dayjs.extend(relativeTime);
@@ -42,6 +44,7 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
   const router: any = useRoute();
   const { user: currentUser } = useSelector((store: RootState) => store.AUTH);
   const { user, photo, average_rating } = items;
+  const userId = getUserId(items);
   const dispatch: any = useDispatch();
   const [readMore, setReadMore] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -129,6 +132,8 @@ const EstateContainer: React.FC<{ items: UIEstateDocument }> = ({ items }) => {
         photo: images,
       };
       const result = await dispatch(createMsg(msg));
+      const notifyData = { userId, msg };
+      await dispatch(sendNotifications(notifyData));
       const id = result.meta.arg.roomId;
       const lastMessage = { ...result.payload.newMsg };
       const items = { id, lastMessage };

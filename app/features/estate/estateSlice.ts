@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { ToastAndroid } from 'react-native';
 import customFetch from '../../utils/axios';
 import { customD } from '../../utils/globals';
+import { leaveReview } from '../reviews/reviewsSlice';
 import { categoryOption, sortOptions, UIEstateDocument } from './types';
 
 interface Houses {
@@ -429,9 +430,6 @@ const estateSlice = createSlice({
           15000,
           0
         );
-        console.log(`====action fulfilled===`);
-        console.log(action);
-        console.log(`====action fulfilled===`);
       })
       .addCase(markAdAsTaken.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -440,9 +438,54 @@ const estateSlice = createSlice({
           15000,
           0
         );
-        console.log(`====action rejected===`);
-        console.log(action);
-        console.log(`====action rejected===`);
+      });
+    builder
+      .addCase(leaveReview.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(leaveReview.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const { review, houseId } = action.payload;
+
+        const targetHouse = state.houses.find(
+          (h) => h._id === houseId || h.id === houseId
+        );
+        if (targetHouse) {
+          targetHouse.numOfReviews = (targetHouse.numOfReviews || 0) + 1;
+
+          if (typeof targetHouse.average_rating === 'number' && review.rating) {
+            const totalRating =
+              targetHouse.average_rating * (targetHouse.numOfReviews - 1) +
+              review.rating;
+            targetHouse.average_rating = totalRating / targetHouse.numOfReviews;
+          }
+
+          if (Array.isArray((targetHouse as any).reviews)) {
+            (targetHouse as any).reviews.push(review);
+          }
+        }
+
+        const updateSingleHouse = (house: any) => {
+          if (house && (house._id === houseId || house.id === houseId)) {
+            house.numOfReviews = (house.numOfReviews || 0) + 1;
+
+            if (typeof house.average_rating === 'number' && review.rating) {
+              const totalRating =
+                house.average_rating * (house.numOfReviews - 1) + review.rating;
+              house.average_rating = totalRating / house.numOfReviews;
+            }
+
+            if (Array.isArray(house.reviews)) {
+              house.reviews.push(review);
+            }
+          }
+        };
+
+        updateSingleHouse(state.singleHouse);
+        updateSingleHouse(state.singleHouseWithComments);
+      })
+      .addCase(leaveReview.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });

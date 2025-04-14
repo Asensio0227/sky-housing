@@ -5,7 +5,14 @@ import {
 } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from 'react-native';
 import { MD2Colors } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,6 +29,7 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props: any) => {
     try {
       await dispatch(signOutUser());
       removeUser();
+      ToastAndroid.showWithGravity('Success! logging out....', 15000, 0);
     } catch (error: any) {
       console.log(`Error logging out: ${error.message}...`);
     }

@@ -7,7 +7,12 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { MD2Colors, PaperProvider, Portal } from 'react-native-paper';
+import {
+  MD2Colors,
+  MD3Colors,
+  PaperProvider,
+  Portal,
+} from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import AppButton from '../../components/custom/AppButton';
@@ -268,7 +273,7 @@ const styles = StyleSheet.create({
   },
   pre: {
     alignItems: 'center',
-    backgroundColor: '#0c0c0c',
+    backgroundColor: MD3Colors.primary50,
     borderRadius: 10,
     display: 'flex',
     flexDirection: 'row',

@@ -1,7 +1,7 @@
 import { ScrollView } from 'react-native';
 import Form from '../form/AppForm';
 import DatePicker from '../form/DatePicker';
-import { default as FormImage, default as ImageInput } from '../form/FormImage';
+import { default as FormImage } from '../form/FormImage';
 import Input from '../form/FormInput';
 import Submit from '../form/SubmitButton';
 import Text from './AppText';
@@ -62,12 +62,14 @@ const Setup: React.FC<{
           placeholder='Enter your username'
           icon='account'
         />
-        <Input
-          name='email'
-          label='Email'
-          placeholder='Enter your email'
-          icon='email'
-        />
+        {!edit && (
+          <Input
+            name='email'
+            label='Email'
+            placeholder='Enter your email'
+            icon='email'
+          />
+        )}
         <Input
           name='ideaNumber'
           label='Idea number'

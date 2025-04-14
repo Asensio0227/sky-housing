@@ -208,38 +208,27 @@ export const pickMedia = async () => {
 };
 
 export const formatDuration = (millis: number) => {
-  const totalSeconds = Math.floor(millis / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${seconds
-    .toString()
-    .padStart(2, '0')}`;
+  // const totalSeconds = Math.floor(millis / 1000);
+  // const minutes = Math.floor(totalSeconds / 60);
+  // const seconds = totalSeconds % 60;
+  // return `${minutes.toString().padStart(2, '0')}:${seconds
+  //   .toString()
+  //   .padStart(2, '0')}`;
+  const minutes = Math.floor(millis / 60000);
+  const seconds = Math.floor((millis % 60000) / 1000);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 };
 
-// export const pickMedia = async () => {
-//   const permissionResult =
-//     await ImagePicker.requestMediaLibraryPermissionsAsync();
-//   if (!permissionResult.granted) {
-//     alert('Permission to access media is required!');
-//     return;
-//   }
+export const getUserId = (data: any) => {
+  if (!data) return null;
 
-//   const result = await ImagePicker.launchImageLibraryAsync({
-//     // mediaTypes: ImagePicker.All,
-//     allowsEditing: false,
-//     quality: 1,
-//   });
+  if (typeof data === 'string') return data;
+  if (typeof data === 'object' && data.user) {
+    return typeof data.user === 'string' ? data.user : data.user._id;
+  }
 
-//   if (!result.canceled) {
-//     const asset = result.assets[0];
-
-//     return {
-//       uri: asset.uri,
-//       name: asset.fileName || 'file.jpg',
-//       type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg', // adjust as needed
-//     };
-//   }
-// };
+  return null;
+};
 
 // export const resizeImage = async (uriArr: IPhoto[], width: number) => {
 //   return Promise.all(

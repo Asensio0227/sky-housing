@@ -1,161 +1,195 @@
 import { Ionicons } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
-import { Audio, AVPlaybackStatus } from 'expo-av';
+
+import { Audio, AVPlaybackStatusSuccess } from 'expo-av';
+
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import { MD3Colors } from 'react-native-paper';
-import { AudioManager } from '../utils/AudioManager';
+
 import { formatDuration } from '../utils/globals';
 
-const AudioPlayer = ({ uri }: { uri: string }) => {
+type Props = {
+  uri: string;
+};
+
+const AudioPlayer = ({ uri }: Props) => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [durationMillis, setDurationMillis] = useState(0);
-  const [positionMillis, setPositionMillis] = useState(0);
+
+  const [duration, setDuration] = useState(0);
+
+  const [position, setPosition] = useState(0);
+
+  const [isLoading, setIsLoading] = useState(true);
+
   const [isSeeking, setIsSeeking] = useState(false);
-  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const loadAndPlay = async () => {
+  const [timerPosition, setTimerPosition] = useState(0);
+
+  const loadSound = async () => {
+    setIsLoading(true);
+
     try {
-      const current = AudioManager.getCurrent();
-      if (current) {
-        const status = await current.getStatusAsync();
-        if (status.isLoaded && status.uri === uri) {
-          console.log('Same audio already loaded');
-          return;
-        }
-      }
-
-      setLoading(true);
-
-      const { sound, status } = await Audio.Sound.createAsync(
+      const { sound: newSound } = await Audio.Sound.createAsync(
         { uri },
+
         { shouldPlay: false },
+
         onPlaybackStatusUpdate
       );
 
-      setSound(sound);
+      const status = await newSound.getStatusAsync();
 
-      if (status.isLoaded) {
-        setDurationMillis(status.durationMillis || 0);
-      }
+      setSound(newSound);
 
-      await AudioManager.play(sound);
+      const successStatus = status as AVPlaybackStatusSuccess;
 
-      if (AudioManager.getCurrent() !== sound) {
-        console.warn('Sound was replaced before playback finished');
-        return;
-      }
+      setDuration(successStatus.durationMillis || 0);
 
-      startTimer();
-      setIsPlaying(true);
-      setLoading(false);
-    } catch (err) {
-      console.log('Error loading audio', err);
-      setLoading(false);
+      setPosition(successStatus.positionMillis || 0);
+    } catch (error) {
+      console.error('Error loading sound:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+  const onPlaybackStatusUpdate = (status: any) => {
     if (!status.isLoaded) return;
 
+    if (status.isPlaying && !isSeeking) {
+      setPosition(status.positionMillis);
+    }
+
     if (status.didJustFinish) {
-      stopSound();
-    } else {
-      if (status.isPlaying && !isSeeking) {
-        setPositionMillis(status.positionMillis);
-      }
+      setIsPlaying(false);
+
+      setPosition(0);
+
+      setIsSeeking(false); // Reset isSeeking on finish
     }
   };
 
-  const stopSound = async () => {
-    if (sound) {
-      try {
-        const status = await sound.getStatusAsync();
-        if (status.isLoaded) {
-          await sound.stopAsync();
-          await sound.unloadAsync();
-        }
-      } catch (err) {
-        console.warn('Error stopping/unloading sound:', err);
-      }
+  const playPause = async () => {
+    if (!sound) return;
 
-      clearInterval(intervalRef.current!);
+    const status = await sound.getStatusAsync();
+
+    if (status.isPlaying) {
+      await sound.pauseAsync();
+
       setIsPlaying(false);
-      setPositionMillis(0);
-
-      if (AudioManager.getCurrent() === sound) {
-        await AudioManager.stopCurrent();
+    } else {
+      if (status.didJustFinish) {
+        await sound.setPositionAsync(0); // Ensure sound object is at the beginning
       }
+
+      await sound.playAsync();
+
+      setIsPlaying(true);
+    }
+  };
+
+  const stopPlayback = async () => {
+    if (sound) {
+      await sound.stopAsync();
+
+      await sound.unloadAsync();
 
       setSound(null);
     }
+
+    setIsPlaying(false);
+
+    setPosition(0);
   };
 
-  const togglePlayback = async () => {
-    if (isPlaying) {
-      await sound?.pauseAsync();
-      clearInterval(intervalRef.current!);
-      setIsPlaying(false);
-    } else {
-      if (sound) {
-        await sound.playAsync();
-        startTimer();
-        setIsPlaying(true);
-      } else {
-        await loadAndPlay();
-      }
+  const seek = async (val: number) => {
+    if (!sound) return;
+
+    try {
+      await sound.setPositionAsync(val);
+
+      setPosition(val);
+    } catch (error) {
+      console.error('Error seeking:', error);
+    } finally {
+      setIsSeeking(false);
     }
-  };
-
-  const handleSeek = async (value: number) => {
-    setIsSeeking(true); // Flag seeking to avoid timer updates
-    await sound?.setPositionAsync(value);
-    setPositionMillis(value); // Update position immediately during seek
   };
 
   const skip = async (ms: number) => {
     if (!sound) return;
-    const newPosition = Math.min(
-      Math.max(positionMillis + ms, 0),
-      durationMillis
-    );
-    await sound.setPositionAsync(newPosition);
-    setPositionMillis(newPosition);
+
+    const newPos = Math.min(Math.max(position + ms, 0), duration);
+
+    try {
+      await sound.setPositionAsync(newPos);
+
+      setPosition(newPos);
+    } catch (error) {
+      console.error('Error skipping:', error);
+    }
   };
 
-  const startTimer = () => {
-    if (intervalRef.current) return;
+  const handleSliderTouchStart = async () => {
+    setIsSeeking(true);
 
-    intervalRef.current = setInterval(async () => {
-      if (!sound) return;
-      const status = await sound.getStatusAsync();
-      if (status.isLoaded && status.isPlaying && !isSeeking) {
-        setPositionMillis(status.positionMillis);
+    if (isPlaying && sound) {
+      await sound.pauseAsync();
+    }
+  };
+
+  const handleSliderTouchEnd = async (newPosition: number) => {
+    setIsSeeking(false);
+
+    if (sound) {
+      try {
+        await sound.setPositionAsync(newPosition);
+
+        setPosition(newPosition);
+
+        if (isPlaying) {
+          await sound.playAsync();
+        }
+      } catch (error) {
+        console.error('Error setting position after slider:', error);
       }
-    }, 500);
+    }
   };
 
   useEffect(() => {
+    setTimerPosition(position);
+  }, [position]);
+
+  useEffect(() => {
+    loadSound();
+
     return () => {
-      stopSound();
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      stopPlayback();
     };
-  }, []);
+  }, [uri]);
 
   return (
     <View
       style={{
         padding: 12,
+
         backgroundColor: MD3Colors.primary60,
+
         borderRadius: 12,
       }}
     >
-      {loading ? (
+      {isLoading ? (
         <ActivityIndicator />
       ) : (
         <>
@@ -163,8 +197,9 @@ const AudioPlayer = ({ uri }: { uri: string }) => {
             <TouchableOpacity onPress={() => skip(-10000)}>
               <Ionicons name='play-back' size={24} color='black' />
             </TouchableOpacity>
+
             <TouchableOpacity
-              onPress={togglePlayback}
+              onPress={playPause}
               style={{ marginHorizontal: 12 }}
             >
               <Ionicons
@@ -173,38 +208,56 @@ const AudioPlayer = ({ uri }: { uri: string }) => {
                 color='black'
               />
             </TouchableOpacity>
+
             <TouchableOpacity onPress={() => skip(10000)}>
               <Ionicons name='play-forward' size={24} color='black' />
             </TouchableOpacity>
           </View>
 
-          {/* Slider */}
-          <Slider
-            style={{ width: '100%', height: 40 }}
-            minimumValue={0}
-            maximumValue={durationMillis}
-            value={positionMillis}
-            minimumTrackTintColor='#1EB1FC'
-            maximumTrackTintColor='#ccc'
-            thumbTintColor='#1EB1FC'
-            onValueChange={(val) => {
-              setIsSeeking(true); // Flag seeking to stop timer updates
-              setPositionMillis(val); // Update position on slide
-            }}
-            onSlidingComplete={async () => {
-              setIsSeeking(false); // Reset seeking flag after user is done sliding
-              startTimer(); // Restart the timer after seeking is complete
-            }}
-          />
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBar,
 
-          {/* Time Display */}
+                {
+                  width:
+                    duration > 0 ? `${(position / duration) * 100}%` : '0%',
+                },
+              ]}
+            />
+          </View>
+
           <Text style={{ alignSelf: 'center' }}>
-            {formatDuration(positionMillis)} / {formatDuration(durationMillis)}
+            {formatDuration(timerPosition)} / {formatDuration(duration)}
           </Text>
         </>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  progressBarContainer: {
+    width: '100%',
+
+    height: 3,
+
+    backgroundColor: '#ccc',
+
+    borderRadius: 1.5,
+
+    marginTop: 4,
+
+    overflow: 'hidden',
+  },
+
+  progressBar: {
+    backgroundColor: 'black',
+
+    height: 3,
+
+    borderRadius: 1.5,
+  },
+});
 
 export default AudioPlayer;

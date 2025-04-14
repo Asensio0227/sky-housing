@@ -25,6 +25,9 @@ function CommentsScreen() {
   const onSubmit = async (data: any) => {
     try {
       const value: any = { ...data, estate };
+      console.log(`===data===`);
+      console.log(value);
+      console.log(`===data===`);
       await dispatch(leaveReview(value));
       navigation.goBack();
     } catch (error: any) {

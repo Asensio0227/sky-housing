@@ -39,6 +39,7 @@ import {
   updateMsg,
 } from '../../features/chats/chatsSlice';
 import { IPhoto } from '../../features/estate/types';
+import { sendNotifications } from '../../features/notify/notifySlice';
 import { AudioManager } from '../../utils/AudioManager';
 import { formatTimestamp, pickMedia } from '../../utils/globals';
 
@@ -165,9 +166,9 @@ const ChatScreen = ({ route }: { route: any }) => {
         dispatch(createMsg(messageData));
         const arr: any = {
           userId: userB._id,
-          message: msg.text,
+          message: msg,
         };
-        // sendNotifications(arr);
+        dispatch(sendNotifications(arr));
       });
       const lastMessage =
         newMessages.length > 0 ? newMessages[newMessages.length - 1] : null;

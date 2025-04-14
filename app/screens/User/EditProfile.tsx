@@ -55,7 +55,6 @@ const EditProfile = () => {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         username: user.username || '',
-        email: user.email || '',
         gender: user.gender || '',
         date_of_birth: user.date_of_birth || '',
         phone_number: user.contact_details.phone_number || '',

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, ToastAndroid, TouchableOpacity } from 'react-native';
 import { Modal } from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,6 +35,7 @@ const ViewModal = () => {
   async function logoutUser() {
     await dispatch(signOutUser());
     removeUser();
+    ToastAndroid.showWithGravity('Success! logging out....', 15000, 0);
   }
 
   const onSubmit = async (data: any) => {
