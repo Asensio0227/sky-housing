@@ -30,12 +30,7 @@ const Chats = () => {
 
   const fetchChats = async () => {
     try {
-      const results = await dispatch(retrieveUserConversation());
-      console.log(results);
-      // retrieve single user
-      // dispatch(retrieveUser());
-      // // update conversations participants and participantsArray from retrieved user
-      // dispatch(updateConversation());
+      await dispatch(retrieveUserConversation());
     } catch (error: any) {
       console.log(`Err fetching chats : ${error}`);
     }

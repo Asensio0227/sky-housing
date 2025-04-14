@@ -24,6 +24,14 @@ export const formatTimestamp = (dateString: string | Date) => {
   });
 };
 
+export const format = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs
+    .toString()
+    .padStart(2, '0')}`;
+};
+
 export const customData = (userData: UserDocument | any, profile?: boolean) => {
   const {
     city,

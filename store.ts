@@ -3,14 +3,12 @@ import authSlice from './app/features/auth/authSlice';
 import chatsSlice from './app/features/chats/chatsSlice';
 import estateSlice from './app/features/estate/estateSlice';
 import reviewsSlice from './app/features/reviews/reviewsSlice';
-import userStatusReducer from './app/features/status/userStatusSlice';
 import userSlice from './app/features/user/userSlice';
 
 export const store = configureStore({
   reducer: {
     AUTH: authSlice,
     USER: userSlice,
-    userStatus: userStatusReducer,
     ESTATE: estateSlice,
     Reviews: reviewsSlice,
     Chats: chatsSlice,

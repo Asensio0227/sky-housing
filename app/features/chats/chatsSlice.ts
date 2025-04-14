@@ -11,11 +11,9 @@ interface roomState {
   filteredConversations: Room[];
   selectedRoom: Room | null;
   conversationsWithNewMessages: Messages[] | Room[] | any;
-  messages: Messages[];
   contact: UserDocument[];
   isLoading: boolean;
   page: number;
-  unreadCount: number;
   hasMore: boolean;
   lastMessage: any | null;
 }
@@ -23,16 +21,13 @@ interface roomState {
 const initialState: roomState = {
   conversations: [],
   hasMore: true,
-
   filteredConversations: [],
   conversationsWithNewMessages: [],
   selectedRoom: null,
-  messages: [],
   contact: [],
   isLoading: true,
-  page: 1,
-  unreadCount: 0,
   lastMessage: null,
+  page: 1,
 } satisfies roomState as roomState;
 
 // =========ROOM=======
@@ -192,9 +187,6 @@ const chatsSlice = createSlice({
       state.page = 1;
       state.hasMore = true;
     },
-    clearMessages: (state) => {
-      return { ...state };
-    },
     setLastMessage(state, action: PayloadAction<any>) {
       state.lastMessage = action.payload;
     },
@@ -204,15 +196,6 @@ const chatsSlice = createSlice({
     ) => {
       const { name, value } = action.payload;
       (state as any)[name] = value;
-    },
-    replaceMessages(state, action: PayloadAction<any[]>) {
-      const newMessages = action.payload;
-      const filteredMessages = newMessages.filter(
-        (msg) =>
-          !state.messages.some((existingMsg) => existingMsg._id === msg._id)
-      );
-
-      state.messages = [...state.messages, ...filteredMessages];
     },
   },
   extraReducers(builder) {
@@ -350,84 +333,9 @@ const chatsSlice = createSlice({
       .addCase(retrieveRoom.rejected, (state, action) => {
         state.isLoading = false;
       });
-    // create msg
-    builder
-      .addCase(createMsg.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(createMsg.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.messages.push(action.payload.newMsg);
-      })
-      .addCase(createMsg.rejected, (state, action) => {
-        state.isLoading = false;
-      });
-    // retrieve msg
-    builder
-      .addCase(retrieveMsg.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(retrieveMsg.fulfilled, (state, action: any) => {
-        state.isLoading = false;
-        const { messages, page } = action.payload;
-
-        const uniqueMessages = messages.filter(
-          (newMsg: any) =>
-            !state.messages.some((msg: any) => msg._id === newMsg._id)
-        );
-
-        if (page === 1) {
-          state.messages = uniqueMessages;
-        } else {
-          state.messages = [...state.messages, ...uniqueMessages];
-        }
-
-        state.page = page;
-        state.hasMore = uniqueMessages.length > 0;
-      })
-      .addCase(retrieveMsg.rejected, (state, action: any) => {
-        state.isLoading = false;
-      });
-    // update room
-    builder
-      .addCase(updateMsg.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateMsg.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const updatedMsg = action.payload.message || action.meta.arg;
-
-        state.messages = state.messages.map((msg) =>
-          msg._id === updatedMsg._id ? { ...msg, ...updatedMsg } : msg
-        );
-      })
-      .addCase(updateMsg.rejected, (state, action) => {
-        state.isLoading = false;
-        console.error('Failed to update message:', action.payload);
-      });
-    // delete msg
-    builder
-      .addCase(deleteMsg.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(deleteMsg.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const deletedMsgId = action.payload._id || action.meta.arg;
-        state.messages = state.messages.filter(
-          (msg) => msg._id !== deletedMsgId
-        );
-      })
-      .addCase(deleteMsg.rejected, (state, action) => {
-        state.isLoading = false;
-      });
   },
 });
 
-export const {
-  resetConversations,
-  clearMessages,
-  setLastMessage,
-  replaceMessages,
-  handleChangeChat,
-} = chatsSlice.actions;
+export const { resetConversations, setLastMessage, handleChangeChat } =
+  chatsSlice.actions;
 export default chatsSlice.reducer;
