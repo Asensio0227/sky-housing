@@ -1,5 +1,10 @@
 import * as React from 'react';
-import { StyleSheet, ToastAndroid, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  ToastAndroid,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import { Modal } from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useDispatch, useSelector } from 'react-redux';
@@ -24,7 +29,7 @@ const validateSchema = Yup.object().shape({
 const ViewModal = () => {
   const { visible, isLoading } = useSelector((store: RootState) => store.AUTH);
   const dispatch: any = useDispatch();
-  const containerStyle = {
+  const containerStyle: ViewStyle = {
     backgroundColor: 'white',
     padding: 20,
     flex: 1,

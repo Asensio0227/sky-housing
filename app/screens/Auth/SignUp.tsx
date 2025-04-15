@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { RootState } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import Loading from '../../components/custom/Loading';
 import Setup from '../../components/custom/Setup';
 import { UserDocument } from '../../components/form/FormInput';
@@ -37,7 +37,7 @@ const validateSchema = Yup.object().shape({
 
 const SignUp = () => {
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
-  const dispatch: any = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { location } = useLocation();
   const { expoPushToken } = useNotifications();
   const navigation: any = useNavigation();

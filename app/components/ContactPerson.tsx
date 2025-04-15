@@ -16,6 +16,7 @@ dayjs.extend(calendar);
 
 type ContactPersonProps = {
   description?: string;
+  hasUnread: number | string;
   user?: {
     username?: string;
     fName?: string;
@@ -34,6 +35,7 @@ const ContactPerson: React.FC<ContactPersonProps> = ({
   time,
   room,
   image,
+  hasUnread,
 }) => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
@@ -75,14 +77,19 @@ const ContactPerson: React.FC<ContactPersonProps> = ({
 
         <View style={styles.info}>
           <View style={styles.rowBetween}>
-            <Text style={styles.text}>
+            <Text style={styles.text} numberOfLines={1}>
               {user?.username || user?.fName || 'Unknown'}
             </Text>
-            {time?.createdAt && (
+            <View style={styles.timeBadgeWrapper}>
               <Text style={styles.time}>
                 {dayjs(time.createdAt).calendar()}
               </Text>
-            )}
+              {Number(hasUnread) > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{hasUnread}</Text>
+                </View>
+              )}
+            </View>
           </View>
           {description && (
             <Text style={styles.desc} numberOfLines={1}>
@@ -108,10 +115,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   avatarContainer: {
     width: 80,
     alignItems: 'center',
@@ -132,10 +135,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textTransform: 'capitalize',
+    flexShrink: 1,
+    flexGrow: 1,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  timeBadgeWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
   },
   time: {
     color: MD2Colors.grey100,
     fontSize: 12,
-    marginTop: 5,
+  },
+  badge: {
+    backgroundColor: MD3Colors.primary30,
+    borderRadius: 12,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    marginLeft: 6,
+  },
+  badgeText: {
+    color: MD2Colors.white,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

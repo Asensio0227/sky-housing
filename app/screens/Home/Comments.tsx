@@ -7,6 +7,7 @@ import AppForm from '../../components/form/AppForm';
 import FormInput from '../../components/form/FormInput';
 import Rating from '../../components/form/RateInput';
 import SubmitButton from '../../components/form/SubmitButton';
+import { setPage } from '../../features/estate/estateSlice';
 import { leaveReview } from '../../features/reviews/reviewsSlice';
 
 const validateSchema = Yup.object().shape({
@@ -20,15 +21,15 @@ function CommentsScreen() {
   const item = router.params;
   const estate = item?._id;
   const dispatch: any = useDispatch();
-  const { isLoading } = useSelector((store: RootReviewsState) => store.Reviews);
+  const { isLoading } = useSelector(
+    (store: RootReviewsState | any) => store.Reviews
+  );
 
   const onSubmit = async (data: any) => {
     try {
       const value: any = { ...data, estate };
-      console.log(`===data===`);
-      console.log(value);
-      console.log(`===data===`);
       await dispatch(leaveReview(value));
+      dispatch(setPage(1));
       navigation.goBack();
     } catch (error: any) {
       console.log(`Error submitting`, error);

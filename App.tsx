@@ -36,6 +36,7 @@ SplashScreen.setOptions({
 // });
 import { LogBox } from 'react-native';
 import useAppStateListener from './app/hooks/useAppState.Listener';
+import useLocation from './app/hooks/useLocation';
 
 LogBox.ignoreLogs([
   'Warning: Avatar: Support for defaultProps will be removed',
@@ -46,6 +47,8 @@ function App() {
   const networkState = Network.useNetworkState();
   const [appIsReady, setAppIsReady] = useState(false);
   const { expoPushToken, notification, channels } = useNotifications();
+  useLocation();
+
   const { user } = useSelector((store: RootState) => store.AUTH);
 
   useEffect(() => {

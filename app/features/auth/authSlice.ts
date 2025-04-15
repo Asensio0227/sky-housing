@@ -208,7 +208,9 @@ export const expoPushNotification = createAsyncThunk(
         expoToken: expoPushToken,
       });
       if (!response.ok) {
-        throw new Error(response.problem);
+        throw new Error(
+          `Error posting expo token: ${response.problem || 'Unknown issue'}`
+        );
       }
       return response.data;
     } catch (error: any) {
@@ -394,6 +396,9 @@ const authSlice = createSlice({
           15000,
           0
         );
+        console.log(`=Error expo =`);
+        console.log(action);
+        console.log(`=Error expo =`);
       });
   },
 });

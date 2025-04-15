@@ -4,11 +4,11 @@
     "slug": "sky-housing",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon-light.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -24,7 +24,7 @@
       "package": "com.brendon99.skyHousing",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png ",
         "monochromeImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
@@ -47,7 +47,9 @@
       [
         "expo-font",
         {
-          "fonts": ["node_modules/@expo-google-fonts/inter/Inter_900Black.ttf"]
+          "fonts": [
+            "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf"
+          ]
         }
       ],
       [
@@ -64,7 +66,9 @@
           "image": "./assets/splash-icon-light.png",
           "dark": {
             "image": "./assets/splash-icon-dark.png",
-            "backgroundColor": "#232323"
+            "backgroundColor": "#232323",
+            "imageWidth": 200,
+            "resizeMode": "contain"
           },
           "imageWidth": 200
         }

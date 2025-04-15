@@ -10,7 +10,12 @@ import {
   Text,
 } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootChatsState, RootState, RootUserState } from '../../../store';
+import {
+  AppChatsDispatch,
+  RootChatsState,
+  RootState,
+  RootUserState,
+} from '../../../store';
 import ContactPerson from '../../components/ContactPerson';
 import Screen from '../../components/custom/Screen';
 import {
@@ -25,7 +30,7 @@ const Chats = () => {
   const { page } = useSelector((store: RootUserState) => store.USER);
   const [userB, setUserB] = useState(null);
   const { user } = useSelector((store: RootState) => store.AUTH);
-  const dispatch: any = useDispatch();
+  const dispatch: any = useDispatch<AppChatsDispatch>();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchChats = async () => {
@@ -77,15 +82,21 @@ const Chats = () => {
       <FlashList
         data={conversations}
         keyExtractor={(item: any) => item._id || item.id}
-        renderItem={({ item }) => (
-          <ContactPerson
-            description={item.lastMessage?.text}
-            style={{ marginTop: 7 }}
-            room={item}
-            time={item.lastMessage}
-            user={item.userB}
-          />
-        )}
+        renderItem={({ item }) => {
+          const isNotRead = (msg: any) => !msg.isRead && msg.user !== user._id;
+          const hasUnread = isNotRead(item.lastMessage) ? 1 : 0;
+
+          return (
+            <ContactPerson
+              description={item.lastMessage?.text}
+              style={{ marginTop: 7 }}
+              room={item}
+              time={item.lastMessage?.createdAt}
+              user={item.userB}
+              hasUnread={hasUnread}
+            />
+          );
+        }}
         estimatedItemSize={200}
         scrollEnabled
         pagingEnabled
@@ -134,19 +145,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-// updateConversationParticipants(state, action) {
-//       const { users } = action.payload;
-
-//       state.conversations = state.conversations.map((conversation) => {
-//         const updatedParticipants = conversation.participantsArray.map((email) => {
-//           const user = users.find((u) => u.email === email);
-//           return user ? user : null;
-//         }).filter(Boolean);
-
-//         return {
-//           ...conversation,
-//           participants: updatedParticipants,
-//         };
-//       });
-//     },

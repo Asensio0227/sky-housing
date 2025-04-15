@@ -15,7 +15,7 @@ type MediaPreviewModalProps = {
   senderUser: UserDocument | null | any;
   roomId: string;
   pendingText: string;
-  setPendingText: () => void;
+  setPendingText: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const MediaPreviewModal = ({

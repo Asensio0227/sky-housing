@@ -4,13 +4,12 @@ import * as Notifications from 'expo-notifications';
 import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { expoPushNotification } from '../features/auth/authSlice';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
   }),
 });
 
@@ -36,9 +35,13 @@ const useNotifications = () => {
         setChannels(value ?? [])
       );
     }
+
     notificationListener.current =
-      Notifications.addNotificationReceivedListener((notification) => {
+      Notifications.addNotificationReceivedListener(async (notification) => {
         setNotification(notification);
+
+        const currentCount = await Notifications.getBadgeCountAsync();
+        await Notifications.setBadgeCountAsync(currentCount + 1);
       });
 
     responseListener.current =
@@ -46,8 +49,11 @@ const useNotifications = () => {
         console.log(response);
       });
 
-    (async () =>
-      expoPushToken && (await dispatch(expoPushNotification(expoPushToken))))();
+    // Dispatch token to backend (if needed)
+    // (async () =>
+    // expoPushToken && (await dispatch(expoPushNotification(expoPushToken))))();
+
+    Notifications.setBadgeCountAsync(0);
 
     return () => {
       notificationListener.current &&
@@ -57,7 +63,7 @@ const useNotifications = () => {
       responseListener.current &&
         Notifications.removeNotificationSubscription(responseListener.current);
     };
-  }, []);
+  }, [expoPushToken, dispatch]);
 
   return { expoPushToken, notification, channels };
 };
@@ -71,6 +77,7 @@ async function registerForPushNotificationsAsync() {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#FF231F7C',
+      showBadge: true,
     });
   }
 
@@ -98,7 +105,6 @@ async function registerForPushNotificationsAsync() {
           projectId,
         })
       ).data;
-      console.log(token);
     } catch (e) {
       token = `${e}`;
     }

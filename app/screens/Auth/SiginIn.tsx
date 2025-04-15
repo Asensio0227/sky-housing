@@ -1,9 +1,9 @@
 import React from 'react';
-import { ScrollView, StyleSheet, ToastAndroid, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { MD2Colors } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { RootState } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import AppText from '../../components/custom/AppText';
 import Loading from '../../components/custom/Loading';
 import TextLink from '../../components/custom/TextLink';
@@ -25,7 +25,7 @@ const validateSchema = Yup.object().shape({
 
 const SiginIn = () => {
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
-  const dispatch: any = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { expoPushToken } = useNotifications();
   const { location } = useLocation();
 

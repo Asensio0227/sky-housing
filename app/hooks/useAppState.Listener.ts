@@ -1,16 +1,20 @@
-import { useEffect } from 'react';
-import { AppState } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store';
 import { signOutUser } from '../features/auth/authSlice';
 
 const useAppStateListener = () => {
-  const dispatch: any = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const appState = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
-    const handleAppStateChange = (nextState: string) => {
-      if (nextState === 'background' || nextState === 'inactive') {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appState.current === 'active' && nextAppState === 'background') {
         dispatch(signOutUser());
       }
+
+      appState.current = nextAppState;
     };
 
     const subscription = AppState.addEventListener(

@@ -80,7 +80,7 @@ export const updateConversation = createAsyncThunk(
 // remove room
 export const removeRoom = createAsyncThunk(
   'room/remove',
-  async (id, thunkApi: any) => {
+  async (id: string, thunkApi: any) => {
     try {
       const response = await customFetch.delete(`room/${id}`);
       return response.data;

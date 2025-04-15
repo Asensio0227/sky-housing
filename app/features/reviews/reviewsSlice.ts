@@ -28,7 +28,7 @@ export const leaveReview = createAsyncThunk(
     try {
       const response = await customFetch.post('review', data);
       const newReview = response.data;
-      return { reviews: newReview, houseId: data.estate };
+      return { review: newReview, houseId: data.estate };
     } catch (error: any) {
       return thunkApi.rejectWithValue('Error creating review' + error);
     }
@@ -64,7 +64,7 @@ const reviewsSlice = createSlice({
       })
       .addCase(leaveReview.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        state.reviews.unshift(action.payload);
+        state.reviews.unshift(action.payload.review);
         state.totalReviews++;
       })
       .addCase(leaveReview.rejected, (state, action) => {

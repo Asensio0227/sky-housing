@@ -1,4 +1,4 @@
-// // @refresh reset
+// @refresh reset
 
 import 'react-native-get-random-values';
 
@@ -583,7 +583,7 @@ const ChatScreen = ({ route }: { route: any }) => {
           stopRecording={stopRecording}
           cancelRecording={cancelRecording}
           sendRecording={sendRecording}
-          recording={recording}
+          recording={!!recording}
           loading={audioLoader}
           senderUser={senderUser}
           roomId={roomId}

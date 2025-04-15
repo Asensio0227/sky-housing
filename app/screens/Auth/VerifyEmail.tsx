@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { MD2Colors, MD2DarkTheme, MD3Colors } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { RootState } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import AppButton from '../../components/custom/AppButton';
 import AppText from '../../components/custom/AppText';
 import Loading from '../../components/custom/Loading';
@@ -17,7 +17,7 @@ import { resendAccountCode, verifyEmail } from '../../features/auth/authSlice';
 const VerifyEmail = () => {
   const [resend, setResend] = useState(false);
   const navigation: any = useNavigation();
-  const dispatch: any = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
 
   const toggleBtn = () => setResend(!resend);

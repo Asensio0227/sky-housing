@@ -81,47 +81,49 @@ export const createAd = createAsyncThunk(
   }
 );
 // retrieve all ads
-export const retrieveAllAds = createAsyncThunk(
-  'estate/retrieve-all',
-  async (_, thunkApi: any) => {
-    const { search, page, sort, category } = thunkApi.getState().ESTATE;
-    const params = new URLSearchParams({
-      sort,
-      category,
-      page: String(page),
-      ...(search && { search }),
-    });
-    const url = `estate?${params.toString()}`;
-    try {
-      const response = await customFetch.get(url);
-      return response.data;
-    } catch (error: any) {
-      return thunkApi.rejectWithValue(`Error retrieving ad: ${error}`);
-    }
+export const retrieveAllAds = createAsyncThunk<
+  any,
+  string,
+  { rejectValue: any }
+>('estate/retrieve-all', async (_, thunkApi: any) => {
+  const { search, page, sort, category } = thunkApi.getState().ESTATE;
+  const params = new URLSearchParams({
+    sort,
+    category,
+    page: String(page),
+    ...(search && { search }),
+  });
+  const url = `estate?${params.toString()}`;
+  try {
+    const response = await customFetch.get(url);
+    return response.data;
+  } catch (error: any) {
+    return thunkApi.rejectWithValue(`Error retrieving ad: ${error}`);
   }
-);
+});
 // retrieve all ads
-export const retrieveFilterAds = createAsyncThunk(
-  'estate/filter-all',
-  async (_, thunkApi: any) => {
-    const { search, page, sort, category } = thunkApi.getState().ESTATE;
-    const params = new URLSearchParams({
-      sort,
-      category,
-      page: String(page),
-      ...(search && { search }),
-    });
-    const url = `estate?${params.toString()}`;
-    try {
-      const response = await customFetch.get(url);
-      return response.data;
-    } catch (error: any) {
-      return thunkApi.rejectWithValue(`Error retrieving ad: ${error}`);
-    }
+export const retrieveFilterAds = createAsyncThunk<
+  any,
+  string,
+  { rejectValue: any }
+>('estate/filter-all', async (_, thunkApi: any) => {
+  const { search, page, sort, category } = thunkApi.getState().ESTATE;
+  const params = new URLSearchParams({
+    sort,
+    category,
+    page: String(page),
+    ...(search && { search }),
+  });
+  const url = `estate?${params.toString()}`;
+  try {
+    const response = await customFetch.get(url);
+    return response.data;
+  } catch (error: any) {
+    return thunkApi.rejectWithValue(`Error retrieving ad: ${error}`);
   }
-);
+});
 // retrieve ad
-export const retrieveAd = createAsyncThunk(
+export const retrieveAd = createAsyncThunk<any, string, { rejectValue: any }>(
   'estate/retrieve-ad',
   async (productId, thunkApi: any) => {
     try {
@@ -133,19 +135,20 @@ export const retrieveAd = createAsyncThunk(
   }
 );
 // retrieve ad with comments
-export const retrieveAdWithComments = createAsyncThunk(
-  'estate/retrieve-ad-with-comments',
-  async (productId, thunkApi) => {
-    try {
-      const response = await customFetch.get(`estate/${productId}/reviews`);
-      return response.data;
-    } catch (error: any) {
-      return thunkApi.rejectWithValue(
-        `Error fetching ad with comments: ${error}`
-      );
-    }
+export const retrieveAdWithComments = createAsyncThunk<
+  any,
+  string,
+  { rejectValue: any }
+>('estate/retrieve-ad-with-comments', async (productId, thunkApi) => {
+  try {
+    const response = await customFetch.get(`estate/${productId}/reviews`);
+    return response.data;
+  } catch (error: any) {
+    return thunkApi.rejectWithValue(
+      `Error fetching ad with comments: ${error}`
+    );
   }
-);
+});
 // retrieve user ads
 export const retrieveUserAds = createAsyncThunk(
   'estate/retrieve-user-ads',
@@ -227,6 +230,7 @@ const estateSlice = createSlice({
     },
     setPage: (state, action) => {
       state.page = action.payload;
+      state.houses = [];
     },
     clearFilters: (state) => {
       return { ...state };
@@ -267,26 +271,27 @@ const estateSlice = createSlice({
       })
       .addCase(retrieveAllAds.fulfilled, (state: any, action: any) => {
         const { totalAds, numOfPages, ads } = action.payload;
+
         if (ads && ads.length === 0) {
           state.hasMore = false;
         } else {
-          const newAds = ads;
-          state.houses = [
-            ...state.houses,
-            ...newAds.filter(
-              (newAd: UIEstateDocument) =>
-                !state.houses.some(
-                  (existingAd: UIEstateDocument) => existingAd.id === newAd.id
-                )
-            ),
-          ];
+          const houseMap = new Map(state.houses.map((h: any) => [h.id, h]));
+          ads.forEach((newAd: UIEstateDocument) => {
+            houseMap.set(newAd.id, newAd);
+          });
+          state.houses = Array.from(houseMap.values());
+          // state.houses.sort(
+          //   (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          // );
           state.totalAds = totalAds;
           state.numOfPages = numOfPages;
           state.page += 1;
-          state.featuredAds = ads.filter(
-            (item: UIEstateDocument) => item.featured === true
+
+          state.featuredAds = state.houses.filter(
+            (item: UIEstateDocument) => item.featured
           );
         }
+
         state.isLoading = false;
       })
       .addCase(retrieveAllAds.rejected, (state, action: any) => {
@@ -447,22 +452,28 @@ const estateSlice = createSlice({
         state.isLoading = false;
         const { review, houseId } = action.payload;
 
-        const targetHouse = state.houses.find(
+        const index = state.houses.findIndex(
           (h) => h._id === houseId || h.id === houseId
         );
-        if (targetHouse) {
-          targetHouse.numOfReviews = (targetHouse.numOfReviews || 0) + 1;
 
-          if (typeof targetHouse.average_rating === 'number' && review.rating) {
-            const totalRating =
-              targetHouse.average_rating * (targetHouse.numOfReviews - 1) +
-              review.rating;
-            targetHouse.average_rating = totalRating / targetHouse.numOfReviews;
-          }
+        if (index !== -1) {
+          const existingHouse: UIEstateDocument | any = state.houses[index];
+          const numOfReviews = (existingHouse.numOfReviews || 0) + 1;
+          const rating = review.rating || 0;
 
-          if (Array.isArray((targetHouse as any).reviews)) {
-            (targetHouse as any).reviews.push(review);
-          }
+          const totalRating =
+            (existingHouse.average_rating || 0) * (numOfReviews - 1) + rating;
+
+          const updatedHouse = {
+            ...existingHouse,
+            numOfReviews,
+            average_rating: totalRating / numOfReviews,
+            reviews: Array.isArray(existingHouse.reviews)
+              ? [...existingHouse.reviews, review]
+              : [review],
+          };
+
+          state.houses[index] = updatedHouse;
         }
 
         const updateSingleHouse = (house: any) => {
@@ -484,7 +495,7 @@ const estateSlice = createSlice({
         updateSingleHouse(state.singleHouse);
         updateSingleHouse(state.singleHouseWithComments);
       })
-      .addCase(leaveReview.rejected, (state) => {
+      .addCase(leaveReview.rejected, (state, action: any) => {
         state.isLoading = false;
       });
   },

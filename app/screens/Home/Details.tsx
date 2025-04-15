@@ -1,8 +1,4 @@
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -27,7 +23,6 @@ import { retrieveAdWithComments } from '../../features/estate/estateSlice';
 import { UIEstateDocument } from '../../features/estate/types';
 
 const Details = () => {
-  const navigation: any = useNavigation();
   const router = useRoute();
   const items: UIEstateDocument | any = router.params;
   const { isLoading, singleHouseWithComments } = useSelector(

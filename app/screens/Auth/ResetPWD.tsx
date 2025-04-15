@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { RootState } from '../../../store';
+import { AppDispatch, RootState } from '../../../store';
 import Loading from '../../components/custom/Loading';
 import TextLink from '../../components/custom/TextLink';
 import Form from '../../components/form/AppForm';
@@ -19,7 +19,7 @@ const ResetPwd = () => {
   const [successfulCreation, setSuccessfulCreation] = useState(false);
   const navigation: any = useNavigation();
   const { isLoading } = useSelector((store: RootState) => store.AUTH);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const toggleBtn = () => setSuccessfulCreation(!successfulCreation);
 

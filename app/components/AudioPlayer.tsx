@@ -84,13 +84,18 @@ const AudioPlayer = ({ uri }: Props) => {
 
     const status = await sound.getStatusAsync();
 
+    if (!status.isLoaded) {
+      console.error('Sound not loaded:', status);
+      return;
+    }
+
     if (status.isPlaying) {
       await sound.pauseAsync();
 
       setIsPlaying(false);
     } else {
       if (status.didJustFinish) {
-        await sound.setPositionAsync(0); // Ensure sound object is at the beginning
+        await sound.setPositionAsync(0);
       }
 
       await sound.playAsync();
